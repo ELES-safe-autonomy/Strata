@@ -212,6 +212,20 @@ function fmtMonth(m) {
   const [y, mo] = m.split('-')
   return new Date(+y, +mo-1, 1).toLocaleDateString('en-US', {month:'long', year:'numeric'})
 }
+function nearestMonday(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00')
+  const day = d.getDay()
+  const diff = day === 0 ? 1 : (day === 1 ? 0 : 8 - day)
+  d.setDate(d.getDate() + diff)
+  return d.toISOString().slice(0, 10)
+}
+function weekRange(weekOf) {
+  const mon = new Date(weekOf + 'T12:00:00')
+  const sun = new Date(mon)
+  sun.setDate(mon.getDate() + 6)
+  const fmt = dt => dt.toLocaleDateString('en-US', {month:'short', day:'numeric'})
+  return `${fmt(mon)} – ${fmt(sun)}`
+}
 
 // ── STATE ────────────────────────────────────────────────
 const BLANK = {roadmaps:[], daily:{}, notes:{wins:'',hard:'',adjust:'',ideas:''}}
@@ -274,25 +288,25 @@ const findTask = (wk, id) => wk.days.find(d => d.id === id)
 // ── MUTATIONS ────────────────────────────────────────────
 function addRm(name, icon, color) {
   S.roadmaps.push({id:uid(), name, icon, color, months:[], created:Date.now()})
-  persist(); render()
+  formSt = null; persist(); render()
 }
 function addMonth(rmId, title, month, type) {
   const rm = findRm(rmId)
   if (!rm) return
   rm.months.push({id:uid(), title, month, type, weeks:[]})
-  persist(); render()
+  formSt = null; persist(); render()
 }
-function addWeek(rmId, moId, title, type) {
+function addWeek(rmId, moId, title, type, weekOf) {
   const rm = findRm(rmId); const mo = rm && findMo(rm, moId)
   if (!mo) return
-  mo.weeks.push({id:uid(), title, type, days:[]})
-  persist(); render()
+  mo.weeks.push({id:uid(), title, type, weekOf: weekOf||td(), days:[]})
+  formSt = null; persist(); render()
 }
 function addTask(rmId, moId, wkId, title, date, block, type) {
   const rm = findRm(rmId); const mo = rm && findMo(rm, moId); const wk = mo && findWk(mo, wkId)
   if (!wk) return
   wk.days.push({id:uid(), title, date: date||td(), block: block||'day', done:false, type: type||'task'})
-  persist(); render()
+  formSt = null; persist(); render()
 }
 function toggleTask(rmId, moId, wkId, taskId) {
   const rm = findRm(rmId); const mo = rm && findMo(rm, moId)
@@ -318,8 +332,8 @@ function deleteRm(id) {
 function saveNote(key, val) { S.notes[key] = val; persist() }
 
 // ── NAVIGATION ───────────────────────────────────────────
-let stack  = [{view:'today'}]
-let tabId  = 'today'
+let stack  = [{view:'roadmaps'}]
+let tabId  = 'roadmaps'
 let formSt = null  // current inline form state
 
 function push(view, params) {
@@ -400,8 +414,8 @@ function renderHeader() {
 function renderNav() {
   if (stack.length > 1) return ''
   const tabs = [
-    {id:'today',    icon:'📅', lbl:'Today'},
     {id:'roadmaps', icon:'🗺', lbl:'Maps'},
+    {id:'today',    icon:'📅', lbl:'Today'},
     {id:'progress', icon:'📊', lbl:'Progress'},
     {id:'notes',    icon:'📝', lbl:'Notes'}
   ]
@@ -516,12 +530,12 @@ function renderFormNewRm() {
     <div class="form-title">New Roadmap</div>
     <input class="inp" id="rm-name" placeholder="Name  (e.g. Career, PhD, Fitness)">
     <div class="sec-lbl" style="margin-bottom:6px">Icon</div>
-    <div class="icon-grid">${ICONS.map(ic =>
-      `<div class="ico-opt ${f.icon===ic?'on':''}" onclick="setProp('icon','${ic}')">${ic}</div>`).join('')}
+    <div class="icon-grid">${ICONS.map((ic, i) =>
+      `<div class="ico-opt ${f.icon===ic?'on':''}" onclick="setProp('icon',ICONS[${i}])">${ic}</div>`).join('')}
     </div>
     <div class="sec-lbl" style="margin-bottom:8px">Color</div>
-    <div class="row-wrap">${COLOR_NAMES.map(c =>
-      `<div class="cdot ${f.color===c?'on':''}" style="background:${COLOR_HEX[c]}" onclick="setProp('color','${c}')"></div>`).join('')}
+    <div class="row-wrap">${COLOR_NAMES.map((c, i) =>
+      `<div class="cdot ${f.color===c?'on':''}" style="background:${COLOR_HEX[c]}" onclick="setProp('color',COLOR_NAMES[${i}])"></div>`).join('')}
     </div>
     <div class="row">
       <button class="btn btn-acc" onclick="submitNewRm()">Create</button>
@@ -629,11 +643,12 @@ function renderMonthDetail(rmId, moId) {
   mo.weeks.forEach((wk, i) => {
     const wp   = weekProg(wk)
     const done = wp.complete
+    const wkLabel = wk.weekOf ? weekRange(wk.weekOf) : `Week ${i+1}`
     html += `<div class="card tappable" style="margin-bottom:8px" onclick="push('week',{rmId:'${rmId}',moId:'${moId}',wkId:'${wk.id}'})">
       <div class="g-row" style="padding:0 0 8px">
         <div class="g-info">
-          <div class="g-title">Week ${i+1} — ${esc(wk.title)}<span class="badge" style="background:${wk.type==='goal'?'var(--a-bg)':'var(--bg2)'};color:${wk.type==='goal'?'var(--accent)':'var(--text3)'}">${wk.type==='goal'?'Goal':'Task'}</span></div>
-          <div class="g-meta">${wp.done}/${wp.total} task${wp.total!==1?'s':''} complete</div>
+          <div class="g-title">${esc(wk.title)}<span class="badge" style="background:${wk.type==='goal'?'var(--a-bg)':'var(--bg2)'};color:${wk.type==='goal'?'var(--accent)':'var(--text3)'}">${wk.type==='goal'?'Goal':'Task'}</span></div>
+          <div class="g-meta">📅 ${wkLabel} · ${wp.done}/${wp.total} tasks</div>
         </div>
         <div class="g-pct" style="color:${done?'#10b981':hex}">${done?'✓':wp.pct+'%'}</div>
         <div class="chevron">›</div>
@@ -646,9 +661,12 @@ function renderMonthDetail(rmId, moId) {
 
 function renderFormNewWeek(rmId, moId) {
   const f = formSt
+  const nextMon = nearestMonday(td())
   return `<div class="form-wrap">
     <div class="form-title">New Weekly Goal</div>
     <input class="inp" id="wk-title" placeholder="e.g. Set up dev environment">
+    <div class="sec-lbl" style="margin-bottom:4px">Week starting (Monday)</div>
+    <input class="inp" id="wk-date" type="date" value="${nextMon}">
     <div class="sec-lbl" style="margin-bottom:6px">Category</div>
     <div class="row-wrap">
       <button class="chip ${(!f.gtype||f.gtype==='goal')?'on':''}" onclick="setProp('gtype','goal')">🎯 Goal</button>
@@ -665,14 +683,15 @@ function renderFormNewWeek(rmId, moId) {
 function renderWeekDetail(rmId, moId, wkId) {
   const rm=findRm(rmId), mo=rm&&findMo(rm,moId), wk=mo&&findWk(mo,wkId)
   if (!wk) return '<div class="empty"><div class="empty-h">Not found</div></div>'
-  const wp   = weekProg(wk)
-  const hex  = COLOR_HEX[rm.color] || 'var(--accent)'
-  const wkN  = mo.weeks.findIndex(w=>w.id===wkId) + 1
+  const wp      = weekProg(wk)
+  const hex     = COLOR_HEX[rm.color] || 'var(--accent)'
+  const wkN     = mo.weeks.findIndex(w=>w.id===wkId) + 1
+  const wkLabel = wk.weekOf ? weekRange(wk.weekOf) : `Week ${wkN}`
 
   let html = `<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
       <div>
-        <div style="font-size:13px;color:var(--text3);margin-bottom:3px">Week ${wkN} · ${fmtMonth(mo.month)}</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:3px">📅 ${wkLabel}</div>
         <div style="font-size:15px;font-weight:600">${esc(wk.title)}</div>
       </div>
       <div style="text-align:right;flex-shrink:0">
@@ -811,9 +830,10 @@ function submitNewMonth(rmId) {
   addMonth(rmId, title, period, formSt.gtype||'goal')
 }
 function submitNewWeek(rmId, moId) {
-  const title = document.getElementById('wk-title')?.value.trim()
+  const title  = document.getElementById('wk-title')?.value.trim()
+  const weekOf = document.getElementById('wk-date')?.value || nearestMonday(td())
   if (!title) { document.getElementById('wk-title')?.focus(); return }
-  addWeek(rmId, moId, title, formSt.gtype||'goal')
+  addWeek(rmId, moId, title, formSt.gtype||'goal', weekOf)
 }
 function submitNewTask(rmId, moId, wkId) {
   const title = document.getElementById('t-title')?.value.trim()
