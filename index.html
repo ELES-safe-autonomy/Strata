@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f9f9f8" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Meridian">
+<link rel="manifest" href="manifest.json">
+<title>Meridian</title>
+<style>
+/* ── TOKENS ──────────────────────────────────────────────── */
+:root {
+  --bg:     #f9f9f8;
+  --bg1:    #f2f2f0;
+  --bg2:    #e4e4e0;
+  --text:   #1a1a18;
+  --text2:  #6b6b66;
+  --text3:  #a8a8a0;
+  --border: rgba(0,0,0,0.07);
+  --borderB:rgba(0,0,0,0.13);
+  --r:      12px;
+  --accent: #5b5ef4;
+  --a-bg:   #eeeeff;
+  --a-lt:   rgba(91,94,244,.1);
+
+  --teal:   #0d9488; --teal-bg: #f0fdfa; --teal-t: #0f766e;
+  --violet: #7c3aed; --violet-bg:#f5f3ff; --violet-t:#6d28d9;
+  --amber:  #d97706; --amber-bg: #fffbeb; --amber-t: #b45309;
+  --rose:   #e11d48; --rose-bg:  #fff1f2; --rose-t:  #be123c;
+  --blue:   #2563eb; --blue-bg:  #eff6ff; --blue-t:  #1d4ed8;
+  --indigo: #4f46e5; --indigo-bg:#eef2ff; --indigo-t:#4338ca;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:#18181b; --bg1:#27272a; --bg2:#3f3f46;
+    --text:#fafaf9; --text2:#a1a1aa; --text3:#71717a;
+    --border:rgba(255,255,255,0.06); --borderB:rgba(255,255,255,0.12);
+    --accent:#818cf8; --a-bg:#1e1b4b;
+    --teal-bg:#042f2e; --teal-t:#5eead4;
+    --violet-bg:#2e1065; --violet-t:#c4b5fd;
+    --amber-bg:#451a03; --amber-t:#fcd34d;
+    --rose-bg:#4c0519; --rose-t:#fda4af;
+    --blue-bg:#1e3a5f; --blue-t:#93c5fd;
+    --indigo-bg:#1e1b4b; --indigo-t:#a5b4fc;
+  }
+}
+
+/* ── RESET ───────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
+input,button,textarea,select{font-family:inherit}
+
+/* ── SHELL ───────────────────────────────────────────────── */
+#root{display:flex;flex-direction:column;height:100vh;height:-webkit-fill-available}
+
+/* ── HEADER ──────────────────────────────────────────────── */
+.hdr{padding:env(safe-area-inset-top,16px) 16px 0;background:var(--bg);border-bottom:.5px solid var(--border);flex-shrink:0;z-index:10}
+.hdr-inner{display:flex;align-items:center;gap:8px;padding:10px 0;min-height:48px}
+.hdr-back{background:none;border:none;color:var(--accent);font-size:15px;font-weight:500;cursor:pointer;padding:4px 8px 4px 0;display:flex;align-items:center;gap:2px;flex-shrink:0}
+.hdr-back::before{content:'‹';font-size:22px;line-height:1;margin-right:1px}
+.hdr-titles{flex:1;min-width:0}
+.hdr-title{font-size:17px;font-weight:600;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hdr-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.hdr-act{background:none;border:none;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;padding:4px 0 4px 8px;flex-shrink:0}
+
+/* ── CONTENT ─────────────────────────────────────────────── */
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px calc(env(safe-area-inset-bottom,0px) + 72px)}
+
+/* ── BOTTOM NAV ──────────────────────────────────────────── */
+.nav{display:flex;background:var(--bg);border-top:.5px solid var(--border);padding:8px 0 env(safe-area-inset-bottom,8px);flex-shrink:0;z-index:10}
+.nav-btn{flex:1;background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;cursor:pointer;color:var(--text3);transition:color .15s}
+.nav-btn.on{color:var(--accent)}
+.nav-icon{font-size:22px;line-height:1}
+.nav-lbl{font-size:10px;font-weight:500;letter-spacing:.15px}
+
+/* ── CARD ────────────────────────────────────────────────── */
+.card{background:var(--bg1);border:.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px}
+.card-title{font-size:14px;font-weight:600;margin-bottom:10px}
+.tappable{cursor:pointer}
+.tappable:active{opacity:.65}
+
+/* ── PROGRESS BAR ────────────────────────────────────────── */
+.bar{height:4px;background:var(--bg2);border-radius:99px;overflow:hidden}
+.bar-fill{height:100%;border-radius:99px;transition:width .4s ease}
+
+/* ── CHECKLIST ITEM ──────────────────────────────────────── */
+.item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:.5px solid var(--border);cursor:pointer}
+.item:last-child{border-bottom:none}
+.item:active{opacity:.65}
+.chk{width:22px;height:22px;border-radius:50%;border:2px solid var(--borderB);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .2s;background:var(--bg)}
+.item.done .chk{background:var(--accent);border-color:var(--accent)}
+.item.done .chk::after{content:'✓';color:#fff;font-size:12px;font-weight:700}
+.item-body{flex:1;min-width:0}
+.item-title{font-size:14px;font-weight:500;line-height:1.4;color:var(--text)}
+.item.done .item-title{text-decoration:line-through;color:var(--text3)}
+.item-sub{font-size:12px;color:var(--text3);margin-top:2px}
+
+/* ── ROADMAP ROW ─────────────────────────────────────────── */
+.rm-row{display:flex;gap:12px;align-items:stretch}
+.color-strip{width:4px;border-radius:2px;flex-shrink:0;align-self:stretch}
+.rm-body{flex:1;min-width:0}
+
+/* ── GOAL ROW ────────────────────────────────────────────── */
+.g-row{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:.5px solid var(--border);cursor:pointer}
+.g-row:last-child{border-bottom:none}
+.g-row:active{opacity:.65}
+.g-info{flex:1;min-width:0}
+.g-title{font-size:14px;font-weight:500;line-height:1.3;margin-bottom:3px}
+.g-meta{font-size:12px;color:var(--text3)}
+.g-pct{font-size:13px;font-weight:700;min-width:36px;text-align:right;flex-shrink:0}
+.chevron{color:var(--text3);font-size:16px;flex-shrink:0}
+
+/* ── TYPE BADGE ──────────────────────────────────────────── */
+.badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 6px;border-radius:6px;vertical-align:middle;margin-left:5px}
+
+/* ── BLOCK CARD ──────────────────────────────────────────── */
+.blk{background:var(--bg1);border:.5px solid var(--border);border-radius:var(--r);margin-bottom:12px;overflow:hidden}
+.blk-hd{display:flex;justify-content:space-between;align-items:flex-start;padding:13px 16px 10px}
+.blk-title{font-size:15px;font-weight:600}
+.blk-time{font-size:11px;color:var(--text3);margin-top:2px}
+.blk-prog{font-size:13px;font-weight:600;color:var(--text2);flex-shrink:0}
+.blk-body{padding:0 16px 12px}
+
+/* ── INLINE FORM ─────────────────────────────────────────── */
+.form-wrap{background:var(--bg1);border:.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px}
+.form-title{font-size:14px;font-weight:600;margin-bottom:12px}
+.inp{width:100%;border:.5px solid var(--borderB);border-radius:8px;padding:9px 11px;font-size:14px;color:var(--text);background:var(--bg);outline:none;margin-bottom:8px;-webkit-appearance:none}
+.inp:focus{border-color:var(--accent);outline:2px solid var(--a-lt)}
+.row{display:flex;gap:8px;align-items:center}
+.row-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+
+/* ── BUTTONS ─────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:4px;padding:8px 14px;font-size:13px;font-weight:500;border-radius:8px;border:.5px solid var(--borderB);background:var(--bg1);color:var(--text);cursor:pointer;white-space:nowrap;flex-shrink:0}
+.btn:active{opacity:.65}
+.btn-acc{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-ghost{background:none;border:none;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;padding:8px 0;display:flex;align-items:center;gap:5px}
+.btn-ghost::before{content:'+';font-size:18px;font-weight:300;line-height:1}
+
+/* ── CHIP SELECTOR ───────────────────────────────────────── */
+.chip{padding:5px 11px;border-radius:99px;border:1px solid var(--borderB);background:var(--bg1);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* ── COLOR DOTS ──────────────────────────────────────────── */
+.cdot{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2.5px solid transparent;transition:all .15s;flex-shrink:0}
+.cdot.on{border-color:var(--text);box-shadow:0 0 0 2px var(--bg)}
+
+/* ── STATS ROW ───────────────────────────────────────────── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{background:var(--bg1);border:.5px solid var(--border);border-radius:10px;padding:10px 8px;text-align:center}
+.stat-n{font-size:22px;font-weight:700;line-height:1.1}
+.stat-l{font-size:10px;color:var(--text3);margin-top:3px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+
+/* ── SECTION LABEL ───────────────────────────────────────── */
+.sec-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:8px;margin-top:4px}
+.sec-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;margin-top:4px}
+
+/* ── SVG RING ────────────────────────────────────────────── */
+.ring-wrap{position:relative;width:52px;height:52px;flex-shrink:0}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-n{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+
+/* ── EMPTY STATE ─────────────────────────────────────────── */
+.empty{text-align:center;padding:48px 24px 32px;color:var(--text3)}
+.empty-ico{font-size:52px;margin-bottom:14px}
+.empty-h{font-size:15px;font-weight:500;color:var(--text2);margin-bottom:4px}
+.empty-s{font-size:13px;line-height:1.5}
+
+/* ── NOTES ───────────────────────────────────────────────── */
+.ta{width:100%;border:.5px solid var(--borderB);border-radius:10px;padding:11px 12px;font-size:14px;color:var(--text);background:var(--bg);line-height:1.6;outline:none;resize:none;-webkit-appearance:none}
+.ta:focus{border-color:var(--accent)}
+
+/* ── ICON GRID ───────────────────────────────────────────── */
+.icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px}
+.ico-opt{background:var(--bg);border:.5px solid var(--borderB);border-radius:8px;padding:6px;text-align:center;font-size:18px;cursor:pointer}
+.ico-opt.on{background:var(--a-bg);border-color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+// ═══════════════════════════════════════════════════════════
+//  MERIDIAN  ·  Personal Progress System
+// ═══════════════════════════════════════════════════════════
+
+// ── CONSTANTS ────────────────────────────────────────────
+const COLOR_NAMES = ['teal','violet','amber','rose','blue','indigo']
+const COLOR_HEX   = {teal:'#0d9488',violet:'#7c3aed',amber:'#d97706',rose:'#e11d48',blue:'#2563eb',indigo:'#4f46e5'}
+const COLOR_CSS   = {teal:'--teal',violet:'--violet',amber:'--amber',rose:'--rose',blue:'--blue',indigo:'--indigo'}
+const ICONS = ['💼','🎓','💪','🧪','🎨','📚','🏃','🧘','🌱','💡','✍️','⭐','🏋️','🩺','🔬','🎯','🚀','📐']
+const BLOCKS = [
+  {key:'morning', label:'Morning', time:'5 – 9 AM',    emoji:'🌅'},
+  {key:'day',     label:'Day',     time:'9 AM – 5 PM', emoji:'☀️'},
+  {key:'evening', label:'Evening', time:'5 PM – Night',emoji:'🌙'}
+]
+
+// ── HELPERS ──────────────────────────────────────────────
+const uid  = () => Math.random().toString(36).slice(2, 10)
+const td   = () => new Date().toISOString().slice(0, 10)
+const clr  = c  => `style="color:${COLOR_HEX[c] || 'var(--accent)'}"`
+const clrB = c  => `style="background:${COLOR_HEX[c] || 'var(--accent)'}"`
+
+function fmtDate(d) {
+  const dt = new Date(d + 'T12:00:00')
+  return dt.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'})
+}
+function fmtMonth(m) {
+  const [y, mo] = m.split('-')
+  return new Date(+y, +mo-1, 1).toLocaleDateString('en-US', {month:'long', year:'numeric'})
+}
+
+// ── STATE ────────────────────────────────────────────────
+const BLANK = {roadmaps:[], daily:{}, notes:{wins:'',hard:'',adjust:'',ideas:''}}
+
+let S
+function loadState() {
+  try { S = JSON.parse(localStorage.getItem('meridian_v1')) || JSON.parse(JSON.stringify(BLANK)) }
+  catch { S = JSON.parse(JSON.stringify(BLANK)) }
+}
+function persist() {
+  try { localStorage.setItem('meridian_v1', JSON.stringify(S)) } catch(e) {}
+}
+
+// ── COMPUTED ─────────────────────────────────────────────
+function weekProg(week) {
+  const total = week.days.length
+  if (!total) return {done:0,total:0,pct:0,complete:false}
+  const done = week.days.filter(d => d.done).length
+  return {done, total, pct: Math.round(done/total*100), complete: done===total}
+}
+function monthProg(month) {
+  const total = month.weeks.length
+  if (!total) return {done:0,total:0,pct:0,complete:false}
+  const done = month.weeks.filter(w => weekProg(w).complete).length
+  return {done, total, pct: Math.round(done/total*100), complete: done===total}
+}
+function rmProg(rm) {
+  if (!rm.months.length) return {pct:0}
+  const sum = rm.months.reduce((s,m) => s + monthProg(m).pct, 0)
+  return {pct: Math.round(sum / rm.months.length)}
+}
+
+function aggToday(date) {
+  const r = {morning:[], day:[], evening:[]}
+  S.roadmaps.forEach(rm => {
+    rm.months.forEach(mo => {
+      mo.weeks.forEach(wk => {
+        wk.days.forEach(t => {
+          if (t.date === date) {
+            const b = t.block || 'day'
+            if (r[b]) r[b].push({...t, rmId:rm.id, moId:mo.id, wkId:wk.id, rmName:rm.name, rmColor:rm.color})
+          }
+        })
+      })
+    })
+  })
+  const st = S.daily[date] || {}
+  BLOCKS.forEach(({key:b}) => {
+    if (st[b]) r[b].push(...st[b].map(t => ({...t, standalone:true})))
+  })
+  return r
+}
+
+// ── FINDERS ──────────────────────────────────────────────
+const findRm   = id  => S.roadmaps.find(r => r.id === id)
+const findMo   = (rm, id) => rm.months.find(m => m.id === id)
+const findWk   = (mo, id) => mo.weeks.find(w => w.id === id)
+const findTask = (wk, id) => wk.days.find(d => d.id === id)
+
+// ── MUTATIONS ────────────────────────────────────────────
+function addRm(name, icon, color) {
+  S.roadmaps.push({id:uid(), name, icon, color, months:[], created:Date.now()})
+  persist(); render()
+}
+function addMonth(rmId, title, month, type) {
+  const rm = findRm(rmId)
+  if (!rm) return
+  rm.months.push({id:uid(), title, month, type, weeks:[]})
+  persist(); render()
+}
+function addWeek(rmId, moId, title, type) {
+  const rm = findRm(rmId); const mo = rm && findMo(rm, moId)
+  if (!mo) return
+  mo.weeks.push({id:uid(), title, type, days:[]})
+  persist(); render()
+}
+function addTask(rmId, moId, wkId, title, date, block, type) {
+  const rm = findRm(rmId); const mo = rm && findMo(rm, moId); const wk = mo && findWk(mo, wkId)
+  if (!wk) return
+  wk.days.push({id:uid(), title, date: date||td(), block: block||'day', done:false, type: type||'task'})
+  persist(); render()
+}
+function toggleTask(rmId, moId, wkId, taskId) {
+  const rm = findRm(rmId); const mo = rm && findMo(rm, moId)
+  const wk = mo && findWk(mo, wkId); const t = wk && findTask(wk, taskId)
+  if (t) { t.done = !t.done; persist(); render() }
+}
+function addStandalone(date, block, text) {
+  if (!S.daily[date]) S.daily[date] = {morning:[], day:[], evening:[]}
+  if (!S.daily[date][block]) S.daily[date][block] = []
+  S.daily[date][block].push({id:uid(), text, done:false})
+  persist(); render()
+}
+function toggleStandalone(date, block, taskId) {
+  const arr = (S.daily[date]||{})[block]||[]
+  const t = arr.find(x => x.id === taskId)
+  if (t) { t.done = !t.done; persist(); render() }
+}
+function deleteRm(id) {
+  if (!confirm('Delete this roadmap and all its data?')) return
+  S.roadmaps = S.roadmaps.filter(r => r.id !== id)
+  persist(); pop()
+}
+function saveNote(key, val) { S.notes[key] = val; persist() }
+
+// ── NAVIGATION ───────────────────────────────────────────
+let stack  = [{view:'today'}]
+let tabId  = 'today'
+let formSt = null  // current inline form state
+
+function push(view, params) {
+  stack.push({view, ...params})
+  formSt = null; render()
+}
+function pop() {
+  if (stack.length > 1) { stack.pop(); formSt = null; render() }
+}
+function goTab(id) {
+  tabId = id; stack = [{view:id}]; formSt = null; render()
+}
+const curV = () => stack[stack.length-1]
+
+// ── FORM STATE HELPERS ────────────────────────────────────
+function openForm(type, extra) {
+  formSt = {type, ...extra}; render()
+  setTimeout(() => {
+    const inp = document.querySelector('.form-wrap .inp, .form-wrap [autofocus]')
+    if (inp) inp.focus()
+  }, 60)
+}
+function setProp(k, v) { if (formSt) { formSt[k] = v; render() } }
+function closeForm()   { formSt = null; render() }
+
+// ── SVG RING ─────────────────────────────────────────────
+function ring(pct, hex) {
+  const r=18, c=2*Math.PI*r, fill=(pct/100)*c
+  return `<div class="ring-wrap">
+    <svg width="52" height="52" viewBox="0 0 52 52">
+      <circle cx="26" cy="26" r="${r}" stroke="var(--bg2)" stroke-width="4" fill="none"/>
+      <circle cx="26" cy="26" r="${r}" stroke="${hex}" stroke-width="4" fill="none"
+        stroke-dasharray="${fill.toFixed(1)} ${c.toFixed(1)}" stroke-linecap="round"/>
+    </svg>
+    <div class="ring-n" style="color:${hex}">${pct}%</div>
+  </div>`
+}
+
+// ── RENDER: HEADER ────────────────────────────────────────
+function renderHeader() {
+  const v = curV(), back = stack.length > 1
+  let title='', sub='', act=''
+
+  if (v.view==='today') {
+    title='Today'
+    sub=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})
+  } else if (v.view==='roadmaps') {
+    title='Roadmaps'
+    act=`<button class="hdr-act" onclick="openForm('newRm',{color:'teal',icon:'💼'})">+ New</button>`
+  } else if (v.view==='roadmap') {
+    const rm=findRm(v.id)
+    title=rm ? rm.name : 'Roadmap'
+    act=`<button class="hdr-act" onclick="openForm('newMonth',{rmId:'${v.id}',gtype:'goal'})">+ Month</button>`
+  } else if (v.view==='month') {
+    const rm=findRm(v.rmId), mo=rm&&findMo(rm,v.moId)
+    title=mo ? mo.title : 'Month'
+    sub=mo ? fmtMonth(mo.month) : ''
+    act=`<button class="hdr-act" onclick="openForm('newWeek',{rmId:'${v.rmId}',moId:'${v.moId}',gtype:'goal'})">+ Week</button>`
+  } else if (v.view==='week') {
+    const rm=findRm(v.rmId), mo=rm&&findMo(rm,v.moId), wk=mo&&findWk(mo,v.wkId)
+    title=wk ? wk.title : 'Week'
+    sub=mo ? fmtMonth(mo.month) : ''
+    act=`<button class="hdr-act" onclick="openForm('newTask',{rmId:'${v.rmId}',moId:'${v.moId}',wkId:'${v.wkId}',block:'day',gtype:'task'})">+ Task</button>`
+  } else if (v.view==='progress') { title='Progress'
+  } else if (v.view==='notes')    { title='Notes' }
+
+  return `<div class="hdr"><div class="hdr-inner">
+    ${back ? `<button class="hdr-back" onclick="pop()">Back</button>` : ''}
+    <div class="hdr-titles">
+      <div class="hdr-title">${title}</div>
+      ${sub ? `<div class="hdr-sub">${sub}</div>` : ''}
+    </div>
+    ${act}
+  </div></div>`
+}
+
+// ── RENDER: NAV ───────────────────────────────────────────
+function renderNav() {
+  if (stack.length > 1) return ''
+  const tabs = [
+    {id:'today',    icon:'📅', lbl:'Today'},
+    {id:'roadmaps', icon:'🗺', lbl:'Maps'},
+    {id:'progress', icon:'📊', lbl:'Progress'},
+    {id:'notes',    icon:'📝', lbl:'Notes'}
+  ]
+  return `<nav class="nav">${tabs.map(t =>
+    `<button class="nav-btn ${tabId===t.id?'on':''}" onclick="goTab('${t.id}')">
+      <span class="nav-icon">${t.icon}</span>
+      <span class="nav-lbl">${t.lbl}</span>
+    </button>`).join('')}</nav>`
+}
+
+// ── RENDER: TODAY ─────────────────────────────────────────
+function renderToday() {
+  const date = td()
+  const agg  = aggToday(date)
+  const all  = [...agg.morning,...agg.day,...agg.evening]
+  const doneAll = all.filter(t=>t.done).length
+  const pctAll  = all.length ? Math.round(doneAll/all.length*100) : 0
+
+  let html = ''
+  if (all.length) {
+    html += `<div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:14px;font-weight:600">Day progress</span>
+        <span style="font-size:14px;font-weight:700;color:var(--accent)">${doneAll}/${all.length}</span>
+      </div>
+      <div class="bar"><div class="bar-fill" style="width:${pctAll}%;background:var(--accent)"></div></div>
+    </div>`
+  }
+
+  BLOCKS.forEach(({key:b, label, time, emoji}) => {
+    const tasks = agg[b]
+    const done  = tasks.filter(t=>t.done).length
+    const total = tasks.length
+    const showF = formSt && formSt.type==='standalone' && formSt.block===b
+
+    html += `<div class="blk">
+      <div class="blk-hd">
+        <div>
+          <div class="blk-title">${emoji} ${label}</div>
+          <div class="blk-time">${time}</div>
+        </div>
+        ${total>0 ? `<div class="blk-prog">${done}/${total}</div>` : ''}
+      </div>
+      ${total>0 ? `<div style="height:3px;background:var(--bg2);overflow:hidden"><div style="height:100%;width:${Math.round(done/total*100)}%;background:var(--accent);transition:width .4s"></div></div>` : ''}
+      <div class="blk-body">
+        ${tasks.map(t => t.standalone
+          ? `<div class="item ${t.done?'done':''}" onclick="toggleStandalone('${date}','${b}','${t.id}')">
+               <div class="chk"></div>
+               <div class="item-body"><div class="item-title">${esc(t.text)}</div></div>
+             </div>`
+          : `<div class="item ${t.done?'done':''}" onclick="toggleTask('${t.rmId}','${t.moId}','${t.wkId}','${t.id}')">
+               <div class="chk"></div>
+               <div class="item-body">
+                 <div class="item-title">${esc(t.title)}</div>
+                 <div class="item-sub"><span class="badge" style="background:${COLOR_HEX[t.rmColor]}22;color:${COLOR_HEX[t.rmColor]}">${esc(t.rmName)}</span></div>
+               </div>
+             </div>`
+        ).join('')}
+        ${showF
+          ? `<div class="row" style="padding:8px 0 2px">
+               <input class="inp" id="sa-inp" placeholder="Add a task…" style="margin-bottom:0" onkeydown="if(event.key==='Enter')submitStandalone('${date}','${b}')">
+               <button class="btn btn-acc btn-sm" onclick="submitStandalone('${date}','${b}')">Add</button>
+               <button class="btn btn-sm" onclick="closeForm()">✕</button>
+             </div>`
+          : `<button class="btn-ghost" onclick="openForm('standalone',{block:'${b}'})">Add task</button>`
+        }
+      </div>
+    </div>`
+  })
+  return html
+}
+
+// ── RENDER: ROADMAPS LIST ─────────────────────────────────
+function renderRoadmaps() {
+  let html = ''
+  if (formSt && formSt.type==='newRm') html += renderFormNewRm()
+
+  if (!S.roadmaps.length && !formSt) {
+    return `<div class="empty">
+      <div class="empty-ico">🗺</div>
+      <div class="empty-h">No roadmaps yet</div>
+      <div class="empty-s">Tap "+ New" above to create your first roadmap — Career, PhD, Fitness, or anything you're working toward.</div>
+    </div>`
+  }
+
+  S.roadmaps.forEach(rm => {
+    const prog = rmProg(rm)
+    const hex  = COLOR_HEX[rm.color] || 'var(--accent)'
+    html += `<div class="card tappable" onclick="push('roadmap',{id:'${rm.id}'})">
+      <div class="rm-row">
+        <div class="color-strip" style="background:${hex}"></div>
+        <div class="rm-body">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:22px">${rm.icon}</span>
+            <div style="flex:1">
+              <div style="font-size:15px;font-weight:600">${esc(rm.name)}</div>
+              <div style="font-size:12px;color:var(--text3)">${rm.months.length} month goal${rm.months.length!==1?'s':''}</div>
+            </div>
+            <div style="font-size:15px;font-weight:700;color:${hex}">${prog.pct}%</div>
+          </div>
+          <div class="bar"><div class="bar-fill" style="width:${prog.pct}%;background:${hex}"></div></div>
+        </div>
+      </div>
+    </div>`
+  })
+  return html
+}
+
+function renderFormNewRm() {
+  const f = formSt
+  return `<div class="form-wrap">
+    <div class="form-title">New Roadmap</div>
+    <input class="inp" id="rm-name" placeholder="Name  (e.g. Career, PhD, Fitness)">
+    <div class="sec-lbl" style="margin-bottom:6px">Icon</div>
+    <div class="icon-grid">${ICONS.map(ic =>
+      `<div class="ico-opt ${f.icon===ic?'on':''}" onclick="setProp('icon','${ic}')">${ic}</div>`).join('')}
+    </div>
+    <div class="sec-lbl" style="margin-bottom:8px">Color</div>
+    <div class="row-wrap">${COLOR_NAMES.map(c =>
+      `<div class="cdot ${f.color===c?'on':''}" style="background:${COLOR_HEX[c]}" onclick="setProp('color','${c}')"></div>`).join('')}
+    </div>
+    <div class="row">
+      <button class="btn btn-acc" onclick="submitNewRm()">Create</button>
+      <button class="btn" onclick="closeForm()">Cancel</button>
+    </div>
+  </div>`
+}
+
+// ── RENDER: ROADMAP DETAIL ────────────────────────────────
+function renderRoadmapDetail(rmId) {
+  const rm = findRm(rmId)
+  if (!rm) return '<div class="empty"><div class="empty-h">Not found</div></div>'
+  const prog = rmProg(rm)
+  const hex  = COLOR_HEX[rm.color] || 'var(--accent)'
+
+  let html = `<div class="card">
+    <div style="display:flex;align-items:center;gap:14px">
+      ${ring(prog.pct, hex)}
+      <div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:3px">${rm.months.length} monthly goals · ${rm.months.reduce((s,m)=>s+m.weeks.length,0)} weeks</div>
+        <div style="font-size:13px;color:var(--text3)">${rm.months.reduce((s,m)=>s+m.weeks.reduce((ws,w)=>ws+w.days.length,0),0)} tasks total</div>
+      </div>
+      <button class="btn btn-sm" style="margin-left:auto;color:var(--rose-t);border-color:var(--rose);background:var(--rose-bg)" onclick="deleteRm('${rmId}')">Delete</button>
+    </div>
+  </div>`
+
+  if (formSt && formSt.type==='newMonth') html += renderFormNewMonth(rmId)
+
+  if (!rm.months.length && !formSt) {
+    html += `<div class="empty"><div class="empty-ico">📅</div><div class="empty-h">No monthly goals yet</div><div class="empty-s">Tap "+ Month" to break this roadmap into monthly milestones.</div></div>`
+    return html
+  }
+
+  // Group by month period
+  const grouped = {}
+  rm.months.forEach(m => { if (!grouped[m.month]) grouped[m.month]=[]; grouped[m.month].push(m) })
+  Object.keys(grouped).sort().forEach(period => {
+    html += `<div class="sec-lbl" style="margin-top:8px">${fmtMonth(period)}</div>`
+    grouped[period].forEach(mo => {
+      const mp  = monthProg(mo)
+      const done = mp.complete
+      html += `<div class="card tappable" style="margin-bottom:8px" onclick="push('month',{rmId:'${rmId}',moId:'${mo.id}'})">
+        <div class="g-row" style="padding:0 0 8px">
+          <div class="g-info">
+            <div class="g-title">${esc(mo.title)}<span class="badge" style="background:${mo.type==='goal'?'var(--a-bg)':'var(--bg2)'};color:${mo.type==='goal'?'var(--accent)':'var(--text3)'}">${mo.type==='goal'?'Goal':'Task'}</span></div>
+            <div class="g-meta">${mo.weeks.length} week${mo.weeks.length!==1?'s':''} · ${mp.done}/${mp.total} complete</div>
+          </div>
+          <div class="g-pct" style="color:${done?'#10b981':hex}">${done?'✓':mp.pct+'%'}</div>
+          <div class="chevron">›</div>
+        </div>
+        <div class="bar"><div class="bar-fill" style="width:${mp.pct}%;background:${hex}"></div></div>
+      </div>`
+    })
+  })
+  return html
+}
+
+function renderFormNewMonth(rmId) {
+  const f = formSt
+  const curMonth = td().slice(0,7)
+  return `<div class="form-wrap">
+    <div class="form-title">New Monthly Goal</div>
+    <input class="inp" id="mo-title" placeholder="e.g. Launch CUDA project">
+    <input class="inp" id="mo-period" type="month" value="${curMonth}">
+    <div class="sec-lbl" style="margin-bottom:6px">Category</div>
+    <div class="row-wrap">
+      <button class="chip ${(!f.gtype||f.gtype==='goal')?'on':''}" onclick="setProp('gtype','goal')">🎯 Goal</button>
+      <button class="chip ${f.gtype==='task'?'on':''}" onclick="setProp('gtype','task')">✅ Task</button>
+    </div>
+    <div class="row">
+      <button class="btn btn-acc" onclick="submitNewMonth('${rmId}')">Add</button>
+      <button class="btn" onclick="closeForm()">Cancel</button>
+    </div>
+  </div>`
+}
+
+// ── RENDER: MONTH DETAIL ──────────────────────────────────
+function renderMonthDetail(rmId, moId) {
+  const rm = findRm(rmId), mo = rm && findMo(rm, moId)
+  if (!mo) return '<div class="empty"><div class="empty-h">Not found</div></div>'
+  const mp  = monthProg(mo)
+  const hex = COLOR_HEX[rm.color] || 'var(--accent)'
+
+  let html = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+      <div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:3px">${fmtMonth(mo.month)}</div>
+        <div style="font-size:15px;font-weight:600">${esc(mo.title)}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:22px;font-weight:700;color:${hex}">${mp.pct}%</div>
+        <div style="font-size:12px;color:var(--text3)">${mp.done}/${mp.total} weeks done</div>
+      </div>
+    </div>
+    <div class="bar"><div class="bar-fill" style="width:${mp.pct}%;background:${hex}"></div></div>
+  </div>`
+
+  if (formSt && formSt.type==='newWeek') html += renderFormNewWeek(rmId, moId)
+
+  if (!mo.weeks.length && !formSt) {
+    html += `<div class="empty"><div class="empty-ico">📆</div><div class="empty-h">No weekly goals yet</div><div class="empty-s">Tap "+ Week" to divide this month into weekly milestones.</div></div>`
+    return html
+  }
+
+  mo.weeks.forEach((wk, i) => {
+    const wp   = weekProg(wk)
+    const done = wp.complete
+    html += `<div class="card tappable" style="margin-bottom:8px" onclick="push('week',{rmId:'${rmId}',moId:'${moId}',wkId:'${wk.id}'})">
+      <div class="g-row" style="padding:0 0 8px">
+        <div class="g-info">
+          <div class="g-title">Week ${i+1} — ${esc(wk.title)}<span class="badge" style="background:${wk.type==='goal'?'var(--a-bg)':'var(--bg2)'};color:${wk.type==='goal'?'var(--accent)':'var(--text3)'}">${wk.type==='goal'?'Goal':'Task'}</span></div>
+          <div class="g-meta">${wp.done}/${wp.total} task${wp.total!==1?'s':''} complete</div>
+        </div>
+        <div class="g-pct" style="color:${done?'#10b981':hex}">${done?'✓':wp.pct+'%'}</div>
+        <div class="chevron">›</div>
+      </div>
+      <div class="bar"><div class="bar-fill" style="width:${wp.pct}%;background:${hex}"></div></div>
+    </div>`
+  })
+  return html
+}
+
+function renderFormNewWeek(rmId, moId) {
+  const f = formSt
+  return `<div class="form-wrap">
+    <div class="form-title">New Weekly Goal</div>
+    <input class="inp" id="wk-title" placeholder="e.g. Set up dev environment">
+    <div class="sec-lbl" style="margin-bottom:6px">Category</div>
+    <div class="row-wrap">
+      <button class="chip ${(!f.gtype||f.gtype==='goal')?'on':''}" onclick="setProp('gtype','goal')">🎯 Goal</button>
+      <button class="chip ${f.gtype==='task'?'on':''}" onclick="setProp('gtype','task')">✅ Task</button>
+    </div>
+    <div class="row">
+      <button class="btn btn-acc" onclick="submitNewWeek('${rmId}','${moId}')">Add</button>
+      <button class="btn" onclick="closeForm()">Cancel</button>
+    </div>
+  </div>`
+}
+
+// ── RENDER: WEEK DETAIL ───────────────────────────────────
+function renderWeekDetail(rmId, moId, wkId) {
+  const rm=findRm(rmId), mo=rm&&findMo(rm,moId), wk=mo&&findWk(mo,wkId)
+  if (!wk) return '<div class="empty"><div class="empty-h">Not found</div></div>'
+  const wp   = weekProg(wk)
+  const hex  = COLOR_HEX[rm.color] || 'var(--accent)'
+  const wkN  = mo.weeks.findIndex(w=>w.id===wkId) + 1
+
+  let html = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+      <div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:3px">Week ${wkN} · ${fmtMonth(mo.month)}</div>
+        <div style="font-size:15px;font-weight:600">${esc(wk.title)}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:22px;font-weight:700;color:${hex}">${wp.pct}%</div>
+        <div style="font-size:12px;color:var(--text3)">${wp.done}/${wp.total} tasks</div>
+      </div>
+    </div>
+    <div class="bar"><div class="bar-fill" style="width:${wp.pct}%;background:${hex}"></div></div>
+  </div>`
+
+  if (formSt && formSt.type==='newTask') html += renderFormNewTask(rmId, moId, wkId)
+
+  if (!wk.days.length && !formSt) {
+    html += `<div class="empty"><div class="empty-ico">✅</div><div class="empty-h">No tasks yet</div><div class="empty-s">Tap "+ Task" to add daily tasks. Assign them to dates and time blocks.</div></div>`
+    return html
+  }
+
+  // Group by date
+  const byDate = {}
+  wk.days.forEach(t => { if (!byDate[t.date]) byDate[t.date]=[]; byDate[t.date].push(t) })
+  Object.keys(byDate).sort().forEach(date => {
+    const tasks = byDate[date]
+    const dn    = tasks.filter(t=>t.done).length
+    html += `<div class="sec-row"><div class="sec-lbl">${fmtDate(date)}</div><div class="sec-lbl">${dn}/${tasks.length}</div></div>
+    <div class="card" style="margin-bottom:8px">${tasks.map(t => {
+      const bl = BLOCKS.find(b=>b.key===t.block)
+      return `<div class="item ${t.done?'done':''}" onclick="toggleTask('${rmId}','${moId}','${wkId}','${t.id}')">
+        <div class="chk"></div>
+        <div class="item-body">
+          <div class="item-title">${esc(t.title)}</div>
+          ${bl ? `<div class="item-sub">${bl.emoji} ${bl.label} · <span class="badge" style="background:${t.type==='goal'?'var(--a-bg)':'var(--bg2)'};color:${t.type==='goal'?'var(--accent)':'var(--text3)'}">${t.type==='goal'?'Goal':'Task'}</span></div>` : ''}
+        </div>
+      </div>`
+    }).join('')}</div>`
+  })
+  return html
+}
+
+function renderFormNewTask(rmId, moId, wkId) {
+  const f = formSt
+  return `<div class="form-wrap">
+    <div class="form-title">New Daily Task</div>
+    <input class="inp" id="t-title" placeholder="e.g. Install CUDA toolkit">
+    <input class="inp" id="t-date" type="date" value="${td()}">
+    <div class="sec-lbl" style="margin-bottom:6px">Time Block</div>
+    <div class="row-wrap">${BLOCKS.map(b =>
+      `<button class="chip ${(f.block||'day')===b.key?'on':''}" onclick="setProp('block','${b.key}')">${b.emoji} ${b.label}</button>`).join('')}
+    </div>
+    <div class="sec-lbl" style="margin-bottom:6px">Category</div>
+    <div class="row-wrap">
+      <button class="chip ${(!f.gtype||f.gtype==='task')?'on':''}" onclick="setProp('gtype','task')">✅ Task</button>
+      <button class="chip ${f.gtype==='goal'?'on':''}" onclick="setProp('gtype','goal')">🎯 Goal</button>
+    </div>
+    <div class="row">
+      <button class="btn btn-acc" onclick="submitNewTask('${rmId}','${moId}','${wkId}')">Add</button>
+      <button class="btn" onclick="closeForm()">Cancel</button>
+    </div>
+  </div>`
+}
+
+// ── RENDER: PROGRESS ──────────────────────────────────────
+function renderProgress() {
+  if (!S.roadmaps.length) {
+    return `<div class="empty"><div class="empty-ico">📊</div><div class="empty-h">Nothing to track yet</div><div class="empty-s">Create a roadmap to start seeing your progress here.</div></div>`
+  }
+
+  let totalTasks=0, doneTasks=0
+  S.roadmaps.forEach(rm => rm.months.forEach(mo => mo.weeks.forEach(wk => {
+    totalTasks += wk.days.length
+    doneTasks  += wk.days.filter(d=>d.done).length
+  })))
+
+  let html = `<div class="stats">
+    <div class="stat"><div class="stat-n" style="color:var(--accent)">${S.roadmaps.length}</div><div class="stat-l">Roadmaps</div></div>
+    <div class="stat"><div class="stat-n">${totalTasks}</div><div class="stat-l">Total tasks</div></div>
+    <div class="stat"><div class="stat-n" style="color:#10b981">${doneTasks}</div><div class="stat-l">Completed</div></div>
+  </div>`
+
+  S.roadmaps.forEach(rm => {
+    const prog = rmProg(rm)
+    const hex  = COLOR_HEX[rm.color] || 'var(--accent)'
+    html += `<div class="card tappable" onclick="goTab('roadmaps');push('roadmap',{id:'${rm.id}'})" style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+        ${ring(prog.pct, hex)}
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:2px">
+            <span style="font-size:18px">${rm.icon}</span>
+            <span style="font-size:15px;font-weight:600">${esc(rm.name)}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text3)">${rm.months.length} months · ${rm.months.reduce((s,m)=>s+m.weeks.length,0)} weeks</div>
+        </div>
+      </div>
+      ${rm.months.map(mo => {
+        const mp = monthProg(mo)
+        return `<div style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+            <span style="font-size:12px;color:var(--text2)">${esc(mo.title)}</span>
+            <span style="font-size:12px;font-weight:700;color:${hex}">${mp.complete?'✓ Done':mp.pct+'%'}</span>
+          </div>
+          <div class="bar"><div class="bar-fill" style="width:${mp.pct}%;background:${hex}"></div></div>
+        </div>`
+      }).join('')}
+    </div>`
+  })
+  return html
+}
+
+// ── RENDER: NOTES ─────────────────────────────────────────
+function renderNotes() {
+  const n = S.notes
+  return `
+    <div class="card"><div class="card-title">This week's wins</div>
+      <textarea class="ta" rows="4" placeholder="What went well? Even small things count…" oninput="saveNote('wins',this.value)">${n.wins||''}</textarea>
+    </div>
+    <div class="card"><div class="card-title">What's hard right now</div>
+      <textarea class="ta" rows="4" placeholder="Write it out — naming it helps." oninput="saveNote('hard',this.value)">${n.hard||''}</textarea>
+    </div>
+    <div class="card"><div class="card-title">Next adjustment</div>
+      <textarea class="ta" rows="3" placeholder="One small change for next week?" oninput="saveNote('adjust',this.value)">${n.adjust||''}</textarea>
+    </div>
+    <div class="card"><div class="card-title">Ideas to revisit</div>
+      <textarea class="ta" rows="4" placeholder="Questions, sparks, things to come back to…" oninput="saveNote('ideas',this.value)">${n.ideas||''}</textarea>
+    </div>`
+}
+
+// ── SUBMIT HANDLERS ───────────────────────────────────────
+function submitNewRm() {
+  const name = document.getElementById('rm-name')?.value.trim()
+  if (!name) { document.getElementById('rm-name')?.focus(); return }
+  addRm(name, formSt.icon||'💼', formSt.color||'teal')
+}
+function submitNewMonth(rmId) {
+  const title  = document.getElementById('mo-title')?.value.trim()
+  const period = document.getElementById('mo-period')?.value || td().slice(0,7)
+  if (!title) { document.getElementById('mo-title')?.focus(); return }
+  addMonth(rmId, title, period, formSt.gtype||'goal')
+}
+function submitNewWeek(rmId, moId) {
+  const title = document.getElementById('wk-title')?.value.trim()
+  if (!title) { document.getElementById('wk-title')?.focus(); return }
+  addWeek(rmId, moId, title, formSt.gtype||'goal')
+}
+function submitNewTask(rmId, moId, wkId) {
+  const title = document.getElementById('t-title')?.value.trim()
+  const date  = document.getElementById('t-date')?.value || td()
+  if (!title) { document.getElementById('t-title')?.focus(); return }
+  addTask(rmId, moId, wkId, title, date, formSt.block||'day', formSt.gtype||'task')
+}
+function submitStandalone(date, block) {
+  const inp  = document.getElementById('sa-inp')
+  const text = inp?.value.trim()
+  if (!text) { inp?.focus(); return }
+  addStandalone(date, block, text)
+}
+
+// ── SAFETY: escape user text in HTML ─────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+// ── MAIN RENDER ───────────────────────────────────────────
+function render() {
+  const v = curV()
+  let content = ''
+  switch(v.view) {
+    case 'today':    content = renderToday(); break
+    case 'roadmaps': content = renderRoadmaps(); break
+    case 'roadmap':  content = renderRoadmapDetail(v.id); break
+    case 'month':    content = renderMonthDetail(v.rmId, v.moId); break
+    case 'week':     content = renderWeekDetail(v.rmId, v.moId, v.wkId); break
+    case 'progress': content = renderProgress(); break
+    case 'notes':    content = renderNotes(); break
+  }
+  document.getElementById('root').innerHTML =
+    renderHeader() +
+    `<div class="content">${content}</div>` +
+    renderNav()
+}
+
+// ── BOOT ──────────────────────────────────────────────────
+loadState()
+render()
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {})
+}
+</script>
+</body>
+</html>
