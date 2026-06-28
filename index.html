@@ -7,9 +7,9 @@
 <meta name="theme-color" content="#f9f9f8" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Meridian">
+<meta name="apple-mobile-web-app-title" content="Strata">
 <link rel="manifest" href="manifest.json">
-<title>Meridian</title>
+<title>Strata</title>
 <style>
 /* ── TOKENS ──────────────────────────────────────────────── */
 :root {
@@ -232,11 +232,11 @@ const BLANK = {roadmaps:[], daily:{}, notes:{wins:'',hard:'',adjust:'',ideas:''}
 
 let S
 function loadState() {
-  try { S = JSON.parse(localStorage.getItem('meridian_v1')) || JSON.parse(JSON.stringify(BLANK)) }
+  try { S = JSON.parse(localStorage.getItem('strata_v1')) || JSON.parse(JSON.stringify(BLANK)) }
   catch { S = JSON.parse(JSON.stringify(BLANK)) }
 }
 function persist() {
-  try { localStorage.setItem('meridian_v1', JSON.stringify(S)) } catch(e) {}
+  try { localStorage.setItem('strata_v1', JSON.stringify(S)) } catch(e) {}
 }
 
 // ── COMPUTED ─────────────────────────────────────────────
