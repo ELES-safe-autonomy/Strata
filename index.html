@@ -632,9 +632,9 @@ function renderStandaloneForm(date, b) {
   const f = formSt
   const hasNotif = 'Notification' in window
   return `<div style="padding:8px 0 2px">
-    <input class="inp" id="sa-inp" placeholder="Task title…" style="margin-bottom:6px">
-    <input class="inp" id="sa-note" placeholder="Note (optional)" style="margin-bottom:6px">
-    <input class="inp" id="sa-time" type="time" style="margin-bottom:${hasNotif?6:8}px">
+    <input class="inp" id="sa-inp" placeholder="Task title…" style="margin-bottom:6px" value="${esc(f.text||'')}" oninput="setProp('text',this.value)">
+    <input class="inp" id="sa-note" placeholder="Note (optional)" style="margin-bottom:6px" value="${esc(f.note||'')}" oninput="setProp('note',this.value)">
+    <input class="inp" id="sa-time" type="time" style="margin-bottom:${hasNotif?6:8}px" value="${f.time||''}" onchange="setProp('time',this.value)">
     ${hasNotif ? `<div class="row-wrap" style="margin-bottom:8px;align-items:center">
       <button class="chip ${f.remind?'on':''}" onclick="setProp('remind',${!f.remind})">🔔 Remind me</button>
       <span style="font-size:11px;color:var(--text3)">Requires app open</span>
@@ -687,7 +687,7 @@ function renderFormNewRm() {
   const f = formSt
   return `<div class="form-wrap">
     <div class="form-title">New Roadmap</div>
-    <input class="inp" id="rm-name" placeholder="Name  (e.g. Career, PhD, Fitness)">
+    <input class="inp" id="rm-name" placeholder="Name  (e.g. Career, PhD, Fitness)" value="${esc(f.name||'')}" oninput="setProp('name',this.value)">
     <div class="sec-lbl" style="margin-bottom:6px">Icon</div>
     <div class="icon-grid">${ICONS.map((ic, i) =>
       `<div class="ico-opt ${f.icon===ic?'on':''}" onclick="setProp('icon',ICONS[${i}])">${ic}</div>`).join('')}
@@ -756,8 +756,8 @@ function renderFormNewMonth(rmId) {
   const curMonth = td().slice(0,7)
   return `<div class="form-wrap">
     <div class="form-title">New Monthly Goal</div>
-    <input class="inp" id="mo-title" placeholder="e.g. Launch CUDA project">
-    <input class="inp" id="mo-period" type="month" value="${curMonth}">
+    <input class="inp" id="mo-title" placeholder="e.g. Launch CUDA project" value="${esc(f.title||'')}" oninput="setProp('title',this.value)">
+    <input class="inp" id="mo-period" type="month" value="${f.period||curMonth}" onchange="setProp('period',this.value)">
     <div class="sec-lbl" style="margin-bottom:6px">Category</div>
     <div class="row-wrap">
       <button class="chip ${(!f.gtype||f.gtype==='goal')?'on':''}" onclick="setProp('gtype','goal')">🎯 Goal</button>
@@ -822,9 +822,9 @@ function renderFormNewWeek(rmId, moId) {
   const nextMon = nearestMonday(td())
   return `<div class="form-wrap">
     <div class="form-title">New Weekly Goal</div>
-    <input class="inp" id="wk-title" placeholder="e.g. Set up dev environment">
+    <input class="inp" id="wk-title" placeholder="e.g. Set up dev environment" value="${esc(f.title||'')}" oninput="setProp('title',this.value)">
     <div class="sec-lbl" style="margin-bottom:4px">Week starting (Monday)</div>
-    <input class="inp" id="wk-date" type="date" value="${nextMon}">
+    <input class="inp" id="wk-date" type="date" value="${f.weekOf||nextMon}" onchange="setProp('weekOf',this.value)">
     <div class="sec-lbl" style="margin-bottom:6px">Category</div>
     <div class="row-wrap">
       <button class="chip ${(!f.gtype||f.gtype==='goal')?'on':''}" onclick="setProp('gtype','goal')">🎯 Goal</button>
@@ -893,10 +893,10 @@ function renderFormNewTask(rmId, moId, wkId) {
   const hasNotif = 'Notification' in window
   return `<div class="form-wrap">
     <div class="form-title">New Daily Task</div>
-    <input class="inp" id="t-title" placeholder="e.g. Install CUDA toolkit">
-    <input class="inp" id="t-note" placeholder="Note (optional)">
-    <input class="inp" id="t-date" type="date" value="${td()}">
-    <input class="inp" id="t-time" type="time">
+    <input class="inp" id="t-title" placeholder="e.g. Install CUDA toolkit" value="${esc(f.title||'')}" oninput="setProp('title',this.value)">
+    <input class="inp" id="t-note" placeholder="Note (optional)" value="${esc(f.note||'')}" oninput="setProp('note',this.value)">
+    <input class="inp" id="t-date" type="date" value="${f.date||td()}" onchange="setProp('date',this.value)">
+    <input class="inp" id="t-time" type="time" value="${f.time||''}" onchange="setProp('time',this.value)">
     <div class="sec-lbl" style="margin-bottom:6px">Time Block</div>
     <div class="row-wrap">${BLOCKS.map(b =>
       `<button class="chip ${(f.block||'day')===b.key?'on':''}" onclick="setProp('block','${b.key}')">${b.emoji} ${b.label}</button>`).join('')}
