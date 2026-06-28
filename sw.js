@@ -1,4 +1,4 @@
-const CACHE = 'strata-v2'
+const CACHE = 'strata-v3'
 const ASSETS = ['./', './index.html', './manifest.json']
 
 self.addEventListener('install', e => {

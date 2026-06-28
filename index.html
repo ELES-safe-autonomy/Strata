@@ -429,9 +429,9 @@ function deleteRm(id) {
 function saveNote(key, val) { S.notes[key] = val; persist() }
 
 // ── ROUTINE MUTATIONS ─────────────────────────────────────
-function addRoutine(day, title, note, time) {
+function addRoutine(day, title, note, time, block) {
   const routines = loadRoutines()
-  routines[day].push({id:uid(), title, note:note||'', time:time||''})
+  routines[day].push({id:uid(), title, note:note||'', time:time||'', block: block||'morning'})
   saveRoutines(routines); render()
 }
 function deleteRoutine(day, id) {
@@ -487,7 +487,31 @@ function openForm(type, extra) {
     if (inp) inp.focus()
   }, 60)
 }
-function setProp(k, v) { if (formSt) { formSt[k] = v; render() } }
+function setProp(k, v) {
+  if (!formSt) return
+  formSt[k] = v
+  switch(k) {
+    case 'gtype':
+    case 'block':
+      document.querySelectorAll('.chip').forEach(el => {
+        const oc = el.getAttribute('onclick') || ''
+        if (oc.includes(`setProp('${k}',`)) el.classList.toggle('on', oc.includes(`'${v}'`))
+      })
+      break
+    case 'color':
+      document.querySelectorAll('.cdot').forEach((el, i) => el.classList.toggle('on', COLOR_NAMES[i] === v))
+      break
+    case 'icon':
+      document.querySelectorAll('.ico-opt').forEach((el, i) => el.classList.toggle('on', ICONS[i] === v))
+      break
+    case 'remind':
+      document.querySelectorAll('.chip').forEach(el => {
+        if ((el.getAttribute('onclick')||'').includes('toggleRemind()')) el.classList.toggle('on', !!v)
+      })
+      break
+  }
+}
+function toggleRemind() { if (formSt) setProp('remind', !formSt.remind) }
 function closeForm()   { formSt = null; render() }
 
 // ── SVG RING ─────────────────────────────────────────────
@@ -573,9 +597,10 @@ function renderToday() {
   const rtnState  = loadDailyRtnState(date)
   const rtnNotes  = loadDailyRtnNotes(date)
 
-  // Prepend routine tasks into their inferred block
+  // Prepend routine tasks into their explicit block
+  console.log('[Strata] Today:', todayDayKey(), '| routines:', dayRtns.length)
   dayRtns.forEach(r => {
-    const b = timeToBlock(r.time)
+    const b = r.block || 'morning'
     agg[b].unshift({...r, isRoutine:true, done: rtnState[r.id]||false, dailyNote: rtnNotes[r.id]||''})
   })
 
@@ -619,6 +644,7 @@ function renderToday() {
               <div class="chk" onclick="toggleRoutine('${date}','${t.id}')"></div>
               <div class="item-body">
                 <div class="item-title" onclick="toggleRoutine('${date}','${t.id}')">${esc(t.title)}${t.time?`<span class="item-time">${fmtTime(t.time)}</span>`:''}${t.remind?' 🔔':''}</div>
+                <div style="margin-top:2px"><span class="badge" style="background:var(--bg2);color:var(--text3);font-size:10px">Routine</span></div>
                 <input class="rtn-note" placeholder="Note for today…" value="${esc(t.dailyNote)}"
                   oninput="updateRtnDailyNote('${date}','${t.id}',this.value)"
                   onclick="event.stopPropagation()">
@@ -659,7 +685,7 @@ function renderStandaloneForm(date, b) {
     <input class="inp" id="sa-note" placeholder="Note (optional)" style="margin-bottom:6px" value="${esc(f.note||'')}" oninput="setProp('note',this.value)">
     <input class="inp" id="sa-time" type="time" style="margin-bottom:${hasNotif?6:8}px" value="${f.time||''}" onchange="setProp('time',this.value)">
     ${hasNotif ? `<div class="row-wrap" style="margin-bottom:8px;align-items:center">
-      <button class="chip ${f.remind?'on':''}" onclick="setProp('remind',${!f.remind})">🔔 Remind me</button>
+      <button class="chip ${f.remind?'on':''}" onclick="toggleRemind()">🔔 Remind me</button>
       <span style="font-size:11px;color:var(--text3)">Requires app open</span>
     </div>` : ''}
     <div class="row">
@@ -977,7 +1003,7 @@ function renderFormNewTask(rmId, moId, wkId) {
       <button class="chip ${f.gtype==='goal'?'on':''}" onclick="setProp('gtype','goal')">🎯 Goal</button>
     </div>
     ${hasNotif ? `<div class="row-wrap" style="margin-bottom:10px;align-items:center">
-      <button class="chip ${f.remind?'on':''}" onclick="setProp('remind',${!f.remind})">🔔 Remind me</button>
+      <button class="chip ${f.remind?'on':''}" onclick="toggleRemind()">🔔 Remind me</button>
       <span style="font-size:11px;color:var(--text3)">Requires app open</span>
     </div>` : ''}
     <div class="row">
@@ -1160,12 +1186,16 @@ function renderSettings() {
     html += `<div class="card" style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:center${list.length||showForm?';margin-bottom:10px':''}">
         <div style="font-size:14px;font-weight:600">${DAYS_LABEL[day]}</div>
-        <button class="btn btn-sm" onclick="openForm('newRoutine',{day:'${day}',remind:false})">+ Add</button>
+        <button class="btn btn-sm" onclick="openForm('newRoutine',{day:'${day}',block:'morning'})">+ Add</button>
       </div>
       ${list.map(r => `
         <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border)">
           <div style="flex:1;min-width:0">
-            <div style="font-size:14px;font-weight:500">${esc(r.title)}${r.time?`<span class="item-time">${fmtTime(r.time)}</span>`:''}</div>
+            <div style="font-size:14px;font-weight:500;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              ${esc(r.title)}
+              ${(() => { const bl = BLOCKS.find(b=>b.key===(r.block||'morning')); return bl ? `<span class="badge" style="background:var(--bg2);color:var(--text3)">${bl.emoji} ${bl.label}</span>` : '' })()}
+              ${r.time?`<span class="item-time">${fmtTime(r.time)}</span>`:''}
+            </div>
             ${r.note?`<div class="item-note">${esc(r.note)}</div>`:''}
           </div>
           <button class="btn-del" onclick="deleteRoutine('${day}','${r.id}')">✕</button>
@@ -1173,6 +1203,12 @@ function renderSettings() {
       ${showForm ? `<div style="padding-top:10px${list.length?';border-top:.5px solid var(--border)':''}">
         <input class="inp" id="rt-title" placeholder="Routine title" style="margin-bottom:6px">
         <input class="inp" id="rt-note"  placeholder="Note (optional)" style="margin-bottom:6px">
+        <div class="sec-lbl" style="margin-bottom:6px">Time Block</div>
+        <div class="row-wrap" style="margin-bottom:8px">
+          <button class="chip ${(!formSt.block||formSt.block==='morning')?'on':''}" onclick="setProp('block','morning')">🌅 Morning</button>
+          <button class="chip ${formSt.block==='day'?'on':''}" onclick="setProp('block','day')">☀️ Day</button>
+          <button class="chip ${formSt.block==='evening'?'on':''}" onclick="setProp('block','evening')">🌙 Evening</button>
+        </div>
         <input class="inp" id="rt-time"  type="time" style="margin-bottom:8px">
         <div class="row">
           <button class="btn btn-acc btn-sm" onclick="submitNewRoutine('${day}')">Add</button>
@@ -1222,8 +1258,9 @@ function submitNewRoutine(day) {
   const title = document.getElementById('rt-title')?.value.trim()
   const note  = document.getElementById('rt-note')?.value.trim()
   const time  = document.getElementById('rt-time')?.value || ''
+  const block = formSt?.block || 'morning'
   if (!title) { document.getElementById('rt-title')?.focus(); return }
-  addRoutine(day, title, note, time)
+  addRoutine(day, title, note, time, block)
 }
 
 // ── SAFETY: escape user text in HTML ─────────────────────
