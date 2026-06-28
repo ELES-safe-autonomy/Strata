@@ -26,12 +26,12 @@
   --a-bg:   #eeeeff;
   --a-lt:   rgba(91,94,244,.1);
 
-  --teal:   #0d9488; --teal-bg: #f0fdfa; --teal-t: #0f766e;
-  --violet: #7c3aed; --violet-bg:#f5f3ff; --violet-t:#6d28d9;
-  --amber:  #d97706; --amber-bg: #fffbeb; --amber-t: #b45309;
-  --rose:   #e11d48; --rose-bg:  #fff1f2; --rose-t:  #be123c;
-  --blue:   #2563eb; --blue-bg:  #eff6ff; --blue-t:  #1d4ed8;
-  --indigo: #4f46e5; --indigo-bg:#eef2ff; --indigo-t:#4338ca;
+  --teal:   #00b4a0; --teal-bg: #e6faf8; --teal-t: #007d6f;
+  --violet: #8b5cf6; --violet-bg:#f3eeff; --violet-t:#6d28d9;
+  --amber:  #f59e0b; --amber-bg: #fff8e6; --amber-t: #b45309;
+  --rose:   #f43f5e; --rose-bg:  #fff0f3; --rose-t:  #be123c;
+  --blue:   #3b82f6; --blue-bg:  #eff6ff; --blue-t:  #1d4ed8;
+  --indigo: #6366f1; --indigo-bg:#eef2ff; --indigo-t:#4338ca;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -39,7 +39,7 @@
     --text:#fafaf9; --text2:#a1a1aa; --text3:#71717a;
     --border:rgba(255,255,255,0.06); --borderB:rgba(255,255,255,0.12);
     --accent:#818cf8; --a-bg:#1e1b4b;
-    --teal-bg:#042f2e; --teal-t:#5eead4;
+    --teal-bg:#042f2e; --teal-t:#2dd4bf;
     --violet-bg:#2e1065; --violet-t:#c4b5fd;
     --amber-bg:#451a03; --amber-t:#fcd34d;
     --rose-bg:#4c0519; --rose-t:#fda4af;
@@ -53,6 +53,7 @@
 html,body{height:100%;overflow:hidden}
 body{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',sans-serif;background:var(--bg);color:var(--text)}
 input,button,textarea,select{font-family:inherit}
+input,textarea,select{font-size:16px;touch-action:manipulation}
 
 /* ── SHELL ───────────────────────────────────────────────── */
 #root{display:flex;flex-direction:column;height:100vh;height:-webkit-fill-available}
@@ -98,6 +99,8 @@ input,button,textarea,select{font-family:inherit}
 .item-title{font-size:14px;font-weight:500;line-height:1.4;color:var(--text)}
 .item.done .item-title{text-decoration:line-through;color:var(--text3)}
 .item-sub{font-size:12px;color:var(--text3);margin-top:2px}
+.item-note{font-size:13px;color:var(--text3);margin-top:3px;line-height:1.4}
+.item-time{font-size:12px;color:var(--text3);font-variant-numeric:tabular-nums;margin-left:5px}
 
 /* ── ROADMAP ROW ─────────────────────────────────────────── */
 .rm-row{display:flex;gap:12px;align-items:stretch}
@@ -128,7 +131,7 @@ input,button,textarea,select{font-family:inherit}
 /* ── INLINE FORM ─────────────────────────────────────────── */
 .form-wrap{background:var(--bg1);border:.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px}
 .form-title{font-size:14px;font-weight:600;margin-bottom:12px}
-.inp{width:100%;border:.5px solid var(--borderB);border-radius:8px;padding:9px 11px;font-size:14px;color:var(--text);background:var(--bg);outline:none;margin-bottom:8px;-webkit-appearance:none}
+.inp{width:100%;border:.5px solid var(--borderB);border-radius:8px;padding:9px 11px;font-size:16px;color:var(--text);background:var(--bg);outline:none;margin-bottom:8px;-webkit-appearance:none}
 .inp:focus{border-color:var(--accent);outline:2px solid var(--a-lt)}
 .row{display:flex;gap:8px;align-items:center}
 .row-wrap{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
@@ -140,6 +143,7 @@ input,button,textarea,select{font-family:inherit}
 .btn-sm{padding:5px 10px;font-size:12px}
 .btn-ghost{background:none;border:none;color:var(--accent);font-size:14px;font-weight:500;cursor:pointer;padding:8px 0;display:flex;align-items:center;gap:5px}
 .btn-ghost::before{content:'+';font-size:18px;font-weight:300;line-height:1}
+.btn-del{background:none;border:none;color:var(--text3);font-size:16px;cursor:pointer;padding:4px 6px;flex-shrink:0;line-height:1}
 
 /* ── CHIP SELECTOR ───────────────────────────────────────── */
 .chip{padding:5px 11px;border-radius:99px;border:1px solid var(--borderB);background:var(--bg1);color:var(--text2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s}
@@ -171,38 +175,51 @@ input,button,textarea,select{font-family:inherit}
 .empty-s{font-size:13px;line-height:1.5}
 
 /* ── NOTES ───────────────────────────────────────────────── */
-.ta{width:100%;border:.5px solid var(--borderB);border-radius:10px;padding:11px 12px;font-size:14px;color:var(--text);background:var(--bg);line-height:1.6;outline:none;resize:none;-webkit-appearance:none}
+.ta{width:100%;border:.5px solid var(--borderB);border-radius:10px;padding:11px 12px;font-size:16px;color:var(--text);background:var(--bg);line-height:1.6;outline:none;resize:none;-webkit-appearance:none}
 .ta:focus{border-color:var(--accent)}
 
 /* ── ICON GRID ───────────────────────────────────────────── */
 .icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:12px}
 .ico-opt{background:var(--bg);border:.5px solid var(--borderB);border-radius:8px;padding:6px;text-align:center;font-size:18px;cursor:pointer}
 .ico-opt.on{background:var(--a-bg);border-color:var(--accent)}
+
+/* ── ROUTINE DAILY NOTE INPUT ────────────────────────────── */
+.rtn-note{width:100%;border:none;border-bottom:.5px solid var(--border);background:transparent;font-size:13px;color:var(--text3);padding:4px 0 3px;outline:none;margin-top:4px;-webkit-appearance:none}
+.rtn-note:focus{border-color:var(--accent)}
+.rtn-note::placeholder{color:var(--text3);opacity:.6}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script>
 // ═══════════════════════════════════════════════════════════
-//  MERIDIAN  ·  Personal Progress System
+//  STRATA  ·  Personal Progress System
 // ═══════════════════════════════════════════════════════════
 
 // ── CONSTANTS ────────────────────────────────────────────
 const COLOR_NAMES = ['teal','violet','amber','rose','blue','indigo']
-const COLOR_HEX   = {teal:'#0d9488',violet:'#7c3aed',amber:'#d97706',rose:'#e11d48',blue:'#2563eb',indigo:'#4f46e5'}
-const COLOR_CSS   = {teal:'--teal',violet:'--violet',amber:'--amber',rose:'--rose',blue:'--blue',indigo:'--indigo'}
+const COLOR_HEX   = {teal:'#00b4a0',violet:'#8b5cf6',amber:'#f59e0b',rose:'#f43f5e',blue:'#3b82f6',indigo:'#6366f1'}
+const COLOR_GRAD  = {
+  teal:   'linear-gradient(135deg,#00b4a0,#34d9c3)',
+  violet: 'linear-gradient(135deg,#8b5cf6,#a78bfa)',
+  amber:  'linear-gradient(135deg,#f59e0b,#fcd34d)',
+  rose:   'linear-gradient(135deg,#f43f5e,#fb7185)',
+  blue:   'linear-gradient(135deg,#3b82f6,#60a5fa)',
+  indigo: 'linear-gradient(135deg,#6366f1,#818cf8)'
+}
 const ICONS = ['💼','🎓','💪','🧪','🎨','📚','🏃','🧘','🌱','💡','✍️','⭐','🏋️','🩺','🔬','🎯','🚀','📐']
 const BLOCKS = [
   {key:'morning', label:'Morning', time:'5 – 9 AM',    emoji:'🌅'},
   {key:'day',     label:'Day',     time:'9 AM – 5 PM', emoji:'☀️'},
   {key:'evening', label:'Evening', time:'5 PM – Night',emoji:'🌙'}
 ]
+const DAYS_KEYS    = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday']
+const DAYS_ORDERED = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday']
+const DAYS_LABEL   = {monday:'Monday',tuesday:'Tuesday',wednesday:'Wednesday',thursday:'Thursday',friday:'Friday',saturday:'Saturday',sunday:'Sunday'}
 
 // ── HELPERS ──────────────────────────────────────────────
 const uid  = () => Math.random().toString(36).slice(2, 10)
 const td   = () => new Date().toISOString().slice(0, 10)
-const clr  = c  => `style="color:${COLOR_HEX[c] || 'var(--accent)'}"`
-const clrB = c  => `style="background:${COLOR_HEX[c] || 'var(--accent)'}"`
 
 function fmtDate(d) {
   const dt = new Date(d + 'T12:00:00')
@@ -226,10 +243,31 @@ function weekRange(weekOf) {
   const fmt = dt => dt.toLocaleDateString('en-US', {month:'short', day:'numeric'})
   return `${fmt(mon)} – ${fmt(sun)}`
 }
+function fmtTime(t) {
+  if (!t) return ''
+  const [h, m] = t.split(':').map(Number)
+  const ampm = h < 12 ? 'AM' : 'PM'
+  const h12  = h % 12 || 12
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`
+}
+function timeToBlock(time) {
+  if (!time) return 'morning'
+  const h = parseInt(time.split(':')[0], 10)
+  if (h < 12) return 'morning'
+  if (h < 17) return 'day'
+  return 'evening'
+}
+function sortByTime(arr) {
+  return [...arr].sort((a, b) => {
+    const ta = a.time || '99:99'
+    const tb = b.time || '99:99'
+    return ta.localeCompare(tb)
+  })
+}
+function todayDayKey() { return DAYS_KEYS[new Date().getDay()] }
 
-// ── STATE ────────────────────────────────────────────────
+// ── MAIN STATE ────────────────────────────────────────────
 const BLANK = {roadmaps:[], daily:{}, notes:{wins:'',hard:'',adjust:'',ideas:''}}
-
 let S
 function loadState() {
   try { S = JSON.parse(localStorage.getItem('strata_v1')) || JSON.parse(JSON.stringify(BLANK)) }
@@ -237,6 +275,30 @@ function loadState() {
 }
 function persist() {
   try { localStorage.setItem('strata_v1', JSON.stringify(S)) } catch(e) {}
+}
+
+// ── ROUTINE STATE ─────────────────────────────────────────
+const BLANK_ROUTINES = {monday:[],tuesday:[],wednesday:[],thursday:[],friday:[],saturday:[],sunday:[]}
+function loadRoutines() {
+  try { return JSON.parse(localStorage.getItem('strata_routines')) || JSON.parse(JSON.stringify(BLANK_ROUTINES)) }
+  catch { return JSON.parse(JSON.stringify(BLANK_ROUTINES)) }
+}
+function saveRoutines(r) {
+  try { localStorage.setItem('strata_routines', JSON.stringify(r)) } catch(e) {}
+}
+function loadDailyRtnState(date) {
+  try { return JSON.parse(localStorage.getItem(`strata_daily_${date}_routines`)) || {} }
+  catch { return {} }
+}
+function saveDailyRtnState(date, st) {
+  try { localStorage.setItem(`strata_daily_${date}_routines`, JSON.stringify(st)) } catch(e) {}
+}
+function loadDailyRtnNotes(date) {
+  try { return JSON.parse(localStorage.getItem(`strata_daily_${date}_notes`)) || {} }
+  catch { return {} }
+}
+function saveDailyRtnNotes(date, n) {
+  try { localStorage.setItem(`strata_daily_${date}_notes`, JSON.stringify(n)) } catch(e) {}
 }
 
 // ── COMPUTED ─────────────────────────────────────────────
@@ -302,10 +364,15 @@ function addWeek(rmId, moId, title, type, weekOf) {
   mo.weeks.push({id:uid(), title, type, weekOf: weekOf||td(), days:[]})
   formSt = null; persist(); render()
 }
-function addTask(rmId, moId, wkId, title, date, block, type) {
+function addTask(rmId, moId, wkId, title, date, block, type, note, time, remind) {
   const rm = findRm(rmId); const mo = rm && findMo(rm, moId); const wk = mo && findWk(mo, wkId)
   if (!wk) return
-  wk.days.push({id:uid(), title, date: date||td(), block: block||'day', done:false, type: type||'task'})
+  const task = {id:uid(), title, date: date||td(), block: block||'day', done:false, type: type||'task'}
+  if (note)   task.note   = note
+  if (time)   task.time   = time
+  if (remind) task.remind = true
+  wk.days.push(task)
+  if (remind && time) scheduleReminder(title, time, note)
   formSt = null; persist(); render()
 }
 function toggleTask(rmId, moId, wkId, taskId) {
@@ -313,16 +380,32 @@ function toggleTask(rmId, moId, wkId, taskId) {
   const wk = mo && findWk(mo, wkId); const t = wk && findTask(wk, taskId)
   if (t) { t.done = !t.done; persist(); render() }
 }
-function addStandalone(date, block, text) {
+function addStandalone(date, block, text, note, time, remind) {
   if (!S.daily[date]) S.daily[date] = {morning:[], day:[], evening:[]}
   if (!S.daily[date][block]) S.daily[date][block] = []
-  S.daily[date][block].push({id:uid(), text, done:false})
+  const task = {id:uid(), text, done:false}
+  if (note)   task.note   = note
+  if (time)   task.time   = time
+  if (remind) task.remind = true
+  S.daily[date][block].push(task)
+  if (remind && time) scheduleReminder(text, time, note)
   persist(); render()
 }
 function toggleStandalone(date, block, taskId) {
   const arr = (S.daily[date]||{})[block]||[]
   const t = arr.find(x => x.id === taskId)
   if (t) { t.done = !t.done; persist(); render() }
+}
+function toggleRoutine(date, routineId) {
+  const st = loadDailyRtnState(date)
+  st[routineId] = !st[routineId]
+  saveDailyRtnState(date, st)
+  render()
+}
+function updateRtnDailyNote(date, routineId, note) {
+  const n = loadDailyRtnNotes(date)
+  n[routineId] = note
+  saveDailyRtnNotes(date, n)
 }
 function deleteRm(id) {
   if (!confirm('Delete this roadmap and all its data?')) return
@@ -331,10 +414,40 @@ function deleteRm(id) {
 }
 function saveNote(key, val) { S.notes[key] = val; persist() }
 
+// ── ROUTINE MUTATIONS ─────────────────────────────────────
+function addRoutine(day, title, note, time) {
+  const routines = loadRoutines()
+  routines[day].push({id:uid(), title, note:note||'', time:time||''})
+  saveRoutines(routines); render()
+}
+function deleteRoutine(day, id) {
+  const routines = loadRoutines()
+  routines[day] = routines[day].filter(r => r.id !== id)
+  saveRoutines(routines); render()
+}
+
+// ── REMINDERS ────────────────────────────────────────────
+async function scheduleReminder(title, time, note) {
+  if (!('Notification' in window)) return
+  if (Notification.permission !== 'granted') {
+    const res = await Notification.requestPermission()
+    if (res !== 'granted') return
+  }
+  const [h, m] = time.split(':').map(Number)
+  const now    = new Date()
+  const target = new Date(now)
+  target.setHours(h, m, 0, 0)
+  const ms = target - now
+  if (ms <= 0) return
+  setTimeout(() => {
+    try { new Notification(title, {body: note || 'Time for your task!', icon:'./icons/icon-192.png'}) } catch(e) {}
+  }, ms)
+}
+
 // ── NAVIGATION ───────────────────────────────────────────
 let stack  = [{view:'roadmaps'}]
 let tabId  = 'roadmaps'
-let formSt = null  // current inline form state
+let formSt = null
 
 function push(view, params) {
   stack.push({view, ...params})
@@ -398,7 +511,8 @@ function renderHeader() {
     sub=mo ? fmtMonth(mo.month) : ''
     act=`<button class="hdr-act" onclick="openForm('newTask',{rmId:'${v.rmId}',moId:'${v.moId}',wkId:'${v.wkId}',block:'day',gtype:'task'})">+ Task</button>`
   } else if (v.view==='progress') { title='Progress'
-  } else if (v.view==='notes')    { title='Notes' }
+  } else if (v.view==='notes')    { title='Notes'
+  } else if (v.view==='settings') { title='Settings' }
 
   return `<div class="hdr"><div class="hdr-inner">
     ${back ? `<button class="hdr-back" onclick="pop()">Back</button>` : ''}
@@ -414,10 +528,11 @@ function renderHeader() {
 function renderNav() {
   if (stack.length > 1) return ''
   const tabs = [
-    {id:'roadmaps', icon:'🗺', lbl:'Maps'},
-    {id:'today',    icon:'📅', lbl:'Today'},
-    {id:'progress', icon:'📊', lbl:'Progress'},
-    {id:'notes',    icon:'📝', lbl:'Notes'}
+    {id:'roadmaps', icon:'🗺',  lbl:'Maps'},
+    {id:'today',    icon:'📅',  lbl:'Today'},
+    {id:'progress', icon:'📊',  lbl:'Progress'},
+    {id:'notes',    icon:'📝',  lbl:'Notes'},
+    {id:'settings', icon:'⚙️', lbl:'Settings'}
   ]
   return `<nav class="nav">${tabs.map(t =>
     `<button class="nav-btn ${tabId===t.id?'on':''}" onclick="goTab('${t.id}')">
@@ -428,9 +543,23 @@ function renderNav() {
 
 // ── RENDER: TODAY ─────────────────────────────────────────
 function renderToday() {
-  const date = td()
-  const agg  = aggToday(date)
-  const all  = [...agg.morning,...agg.day,...agg.evening]
+  const date      = td()
+  const agg       = aggToday(date)
+  const routines  = loadRoutines()
+  const dayRtns   = routines[todayDayKey()] || []
+  const rtnState  = loadDailyRtnState(date)
+  const rtnNotes  = loadDailyRtnNotes(date)
+
+  // Prepend routine tasks into their inferred block
+  dayRtns.forEach(r => {
+    const b = timeToBlock(r.time)
+    agg[b].unshift({...r, isRoutine:true, done: rtnState[r.id]||false, dailyNote: rtnNotes[r.id]||''})
+  })
+
+  // Sort each block by time (no-time items sink to bottom)
+  BLOCKS.forEach(({key:b}) => { agg[b] = sortByTime(agg[b]) })
+
+  const all     = [...agg.morning,...agg.day,...agg.evening]
   const doneAll = all.filter(t=>t.done).length
   const pctAll  = all.length ? Math.round(doneAll/all.length*100) : 0
 
@@ -461,31 +590,60 @@ function renderToday() {
       </div>
       ${total>0 ? `<div style="height:3px;background:var(--bg2);overflow:hidden"><div style="height:100%;width:${Math.round(done/total*100)}%;background:var(--accent);transition:width .4s"></div></div>` : ''}
       <div class="blk-body">
-        ${tasks.map(t => t.standalone
-          ? `<div class="item ${t.done?'done':''}" onclick="toggleStandalone('${date}','${b}','${t.id}')">
-               <div class="chk"></div>
-               <div class="item-body"><div class="item-title">${esc(t.text)}</div></div>
-             </div>`
-          : `<div class="item ${t.done?'done':''}" onclick="toggleTask('${t.rmId}','${t.moId}','${t.wkId}','${t.id}')">
-               <div class="chk"></div>
-               <div class="item-body">
-                 <div class="item-title">${esc(t.title)}</div>
-                 <div class="item-sub"><span class="badge" style="background:${COLOR_HEX[t.rmColor]}22;color:${COLOR_HEX[t.rmColor]}">${esc(t.rmName)}</span></div>
-               </div>
-             </div>`
-        ).join('')}
-        ${showF
-          ? `<div class="row" style="padding:8px 0 2px">
-               <input class="inp" id="sa-inp" placeholder="Add a task…" style="margin-bottom:0" onkeydown="if(event.key==='Enter')submitStandalone('${date}','${b}')">
-               <button class="btn btn-acc btn-sm" onclick="submitStandalone('${date}','${b}')">Add</button>
-               <button class="btn btn-sm" onclick="closeForm()">✕</button>
-             </div>`
-          : `<button class="btn-ghost" onclick="openForm('standalone',{block:'${b}'})">Add task</button>`
-        }
+        ${tasks.map(t => {
+          if (t.isRoutine) {
+            return `<div class="item ${t.done?'done':''}">
+              <div class="chk" onclick="toggleRoutine('${date}','${t.id}')"></div>
+              <div class="item-body">
+                <div class="item-title" onclick="toggleRoutine('${date}','${t.id}')">${esc(t.title)}${t.time?`<span class="item-time">${fmtTime(t.time)}</span>`:''}${t.remind?' 🔔':''}</div>
+                <input class="rtn-note" placeholder="Note for today…" value="${esc(t.dailyNote)}"
+                  oninput="updateRtnDailyNote('${date}','${t.id}',this.value)"
+                  onclick="event.stopPropagation()">
+              </div>
+            </div>`
+          } else if (t.standalone) {
+            return `<div class="item ${t.done?'done':''}" onclick="toggleStandalone('${date}','${b}','${t.id}')">
+              <div class="chk"></div>
+              <div class="item-body">
+                <div class="item-title">${esc(t.text)}${t.time?`<span class="item-time">${fmtTime(t.time)}</span>`:''}${t.remind?' 🔔':''}</div>
+                ${t.note?`<div class="item-note">${esc(t.note)}</div>`:''}
+              </div>
+            </div>`
+          } else {
+            return `<div class="item ${t.done?'done':''}" onclick="toggleTask('${t.rmId}','${t.moId}','${t.wkId}','${t.id}')">
+              <div class="chk"></div>
+              <div class="item-body">
+                <div class="item-title">${esc(t.title)}${t.time?`<span class="item-time">${fmtTime(t.time)}</span>`:''}${t.remind?' 🔔':''}</div>
+                <div class="item-sub"><span class="badge" style="background:${COLOR_HEX[t.rmColor]}22;color:${COLOR_HEX[t.rmColor]}">${esc(t.rmName)}</span></div>
+                ${t.note?`<div class="item-note">${esc(t.note)}</div>`:''}
+              </div>
+            </div>`
+          }
+        }).join('')}
+        ${showF ? renderStandaloneForm(date, b)
+          : `<button class="btn-ghost" onclick="openForm('standalone',{block:'${b}',remind:false})">Add task</button>`}
       </div>
     </div>`
   })
   return html
+}
+
+function renderStandaloneForm(date, b) {
+  const f = formSt
+  const hasNotif = 'Notification' in window
+  return `<div style="padding:8px 0 2px">
+    <input class="inp" id="sa-inp" placeholder="Task title…" style="margin-bottom:6px">
+    <input class="inp" id="sa-note" placeholder="Note (optional)" style="margin-bottom:6px">
+    <input class="inp" id="sa-time" type="time" style="margin-bottom:${hasNotif?6:8}px">
+    ${hasNotif ? `<div class="row-wrap" style="margin-bottom:8px;align-items:center">
+      <button class="chip ${f.remind?'on':''}" onclick="setProp('remind',${!f.remind})">🔔 Remind me</button>
+      <span style="font-size:11px;color:var(--text3)">Requires app open</span>
+    </div>` : ''}
+    <div class="row">
+      <button class="btn btn-acc btn-sm" onclick="submitStandalone('${date}','${b}')">Add</button>
+      <button class="btn btn-sm" onclick="closeForm()">✕</button>
+    </div>
+  </div>`
 }
 
 // ── RENDER: ROADMAPS LIST ─────────────────────────────────
@@ -504,9 +662,10 @@ function renderRoadmaps() {
   S.roadmaps.forEach(rm => {
     const prog = rmProg(rm)
     const hex  = COLOR_HEX[rm.color] || 'var(--accent)'
+    const grad = COLOR_GRAD[rm.color] || hex
     html += `<div class="card tappable" onclick="push('roadmap',{id:'${rm.id}'})">
       <div class="rm-row">
-        <div class="color-strip" style="background:${hex}"></div>
+        <div class="color-strip" style="background:${grad}"></div>
         <div class="rm-body">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
             <span style="font-size:22px">${rm.icon}</span>
@@ -569,7 +728,6 @@ function renderRoadmapDetail(rmId) {
     return html
   }
 
-  // Group by month period
   const grouped = {}
   rm.months.forEach(m => { if (!grouped[m.month]) grouped[m.month]=[]; grouped[m.month].push(m) })
   Object.keys(grouped).sort().forEach(period => {
@@ -709,11 +867,10 @@ function renderWeekDetail(rmId, moId, wkId) {
     return html
   }
 
-  // Group by date
   const byDate = {}
   wk.days.forEach(t => { if (!byDate[t.date]) byDate[t.date]=[]; byDate[t.date].push(t) })
   Object.keys(byDate).sort().forEach(date => {
-    const tasks = byDate[date]
+    const tasks = sortByTime(byDate[date])
     const dn    = tasks.filter(t=>t.done).length
     html += `<div class="sec-row"><div class="sec-lbl">${fmtDate(date)}</div><div class="sec-lbl">${dn}/${tasks.length}</div></div>
     <div class="card" style="margin-bottom:8px">${tasks.map(t => {
@@ -721,8 +878,9 @@ function renderWeekDetail(rmId, moId, wkId) {
       return `<div class="item ${t.done?'done':''}" onclick="toggleTask('${rmId}','${moId}','${wkId}','${t.id}')">
         <div class="chk"></div>
         <div class="item-body">
-          <div class="item-title">${esc(t.title)}</div>
+          <div class="item-title">${esc(t.title)}${t.time?`<span class="item-time">${fmtTime(t.time)}</span>`:''}${t.remind?' 🔔':''}</div>
           ${bl ? `<div class="item-sub">${bl.emoji} ${bl.label} · <span class="badge" style="background:${t.type==='goal'?'var(--a-bg)':'var(--bg2)'};color:${t.type==='goal'?'var(--accent)':'var(--text3)'}">${t.type==='goal'?'Goal':'Task'}</span></div>` : ''}
+          ${t.note?`<div class="item-note">${esc(t.note)}</div>`:''}
         </div>
       </div>`
     }).join('')}</div>`
@@ -732,10 +890,13 @@ function renderWeekDetail(rmId, moId, wkId) {
 
 function renderFormNewTask(rmId, moId, wkId) {
   const f = formSt
+  const hasNotif = 'Notification' in window
   return `<div class="form-wrap">
     <div class="form-title">New Daily Task</div>
     <input class="inp" id="t-title" placeholder="e.g. Install CUDA toolkit">
+    <input class="inp" id="t-note" placeholder="Note (optional)">
     <input class="inp" id="t-date" type="date" value="${td()}">
+    <input class="inp" id="t-time" type="time">
     <div class="sec-lbl" style="margin-bottom:6px">Time Block</div>
     <div class="row-wrap">${BLOCKS.map(b =>
       `<button class="chip ${(f.block||'day')===b.key?'on':''}" onclick="setProp('block','${b.key}')">${b.emoji} ${b.label}</button>`).join('')}
@@ -745,6 +906,10 @@ function renderFormNewTask(rmId, moId, wkId) {
       <button class="chip ${(!f.gtype||f.gtype==='task')?'on':''}" onclick="setProp('gtype','task')">✅ Task</button>
       <button class="chip ${f.gtype==='goal'?'on':''}" onclick="setProp('gtype','goal')">🎯 Goal</button>
     </div>
+    ${hasNotif ? `<div class="row-wrap" style="margin-bottom:10px;align-items:center">
+      <button class="chip ${f.remind?'on':''}" onclick="setProp('remind',${!f.remind})">🔔 Remind me</button>
+      <span style="font-size:11px;color:var(--text3)">Requires app open</span>
+    </div>` : ''}
     <div class="row">
       <button class="btn btn-acc" onclick="submitNewTask('${rmId}','${moId}','${wkId}')">Add</button>
       <button class="btn" onclick="closeForm()">Cancel</button>
@@ -817,6 +982,41 @@ function renderNotes() {
     </div>`
 }
 
+// ── RENDER: SETTINGS ──────────────────────────────────────
+function renderSettings() {
+  const routines = loadRoutines()
+  let html = `<div class="sec-lbl" style="margin-top:0;margin-bottom:12px">Daily Routines</div>`
+
+  DAYS_ORDERED.forEach(day => {
+    const list    = routines[day] || []
+    const showForm = formSt && formSt.type==='newRoutine' && formSt.day===day
+    html += `<div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center${list.length||showForm?';margin-bottom:10px':''}">
+        <div style="font-size:14px;font-weight:600">${DAYS_LABEL[day]}</div>
+        <button class="btn btn-sm" onclick="openForm('newRoutine',{day:'${day}',remind:false})">+ Add</button>
+      </div>
+      ${list.map(r => `
+        <div style="display:flex;align-items:flex-start;gap:10px;padding:9px 0;border-bottom:.5px solid var(--border)">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:500">${esc(r.title)}${r.time?`<span class="item-time">${fmtTime(r.time)}</span>`:''}</div>
+            ${r.note?`<div class="item-note">${esc(r.note)}</div>`:''}
+          </div>
+          <button class="btn-del" onclick="deleteRoutine('${day}','${r.id}')">✕</button>
+        </div>`).join('')}
+      ${showForm ? `<div style="padding-top:10px${list.length?';border-top:.5px solid var(--border)':''}">
+        <input class="inp" id="rt-title" placeholder="Routine title" style="margin-bottom:6px">
+        <input class="inp" id="rt-note"  placeholder="Note (optional)" style="margin-bottom:6px">
+        <input class="inp" id="rt-time"  type="time" style="margin-bottom:8px">
+        <div class="row">
+          <button class="btn btn-acc btn-sm" onclick="submitNewRoutine('${day}')">Add</button>
+          <button class="btn btn-sm" onclick="closeForm()">Cancel</button>
+        </div>
+      </div>` : ''}
+    </div>`
+  })
+  return html
+}
+
 // ── SUBMIT HANDLERS ───────────────────────────────────────
 function submitNewRm() {
   const name = document.getElementById('rm-name')?.value.trim()
@@ -837,15 +1037,26 @@ function submitNewWeek(rmId, moId) {
 }
 function submitNewTask(rmId, moId, wkId) {
   const title = document.getElementById('t-title')?.value.trim()
+  const note  = document.getElementById('t-note')?.value.trim()
   const date  = document.getElementById('t-date')?.value || td()
+  const time  = document.getElementById('t-time')?.value || ''
   if (!title) { document.getElementById('t-title')?.focus(); return }
-  addTask(rmId, moId, wkId, title, date, formSt.block||'day', formSt.gtype||'task')
+  addTask(rmId, moId, wkId, title, date, formSt.block||'day', formSt.gtype||'task', note, time, formSt.remind||false)
 }
 function submitStandalone(date, block) {
   const inp  = document.getElementById('sa-inp')
   const text = inp?.value.trim()
+  const note = document.getElementById('sa-note')?.value.trim()
+  const time = document.getElementById('sa-time')?.value || ''
   if (!text) { inp?.focus(); return }
-  addStandalone(date, block, text)
+  addStandalone(date, block, text, note, time, formSt?.remind||false)
+}
+function submitNewRoutine(day) {
+  const title = document.getElementById('rt-title')?.value.trim()
+  const note  = document.getElementById('rt-note')?.value.trim()
+  const time  = document.getElementById('rt-time')?.value || ''
+  if (!title) { document.getElementById('rt-title')?.focus(); return }
+  addRoutine(day, title, note, time)
 }
 
 // ── SAFETY: escape user text in HTML ─────────────────────
@@ -865,6 +1076,7 @@ function render() {
     case 'week':     content = renderWeekDetail(v.rmId, v.moId, v.wkId); break
     case 'progress': content = renderProgress(); break
     case 'notes':    content = renderNotes(); break
+    case 'settings': content = renderSettings(); break
   }
   document.getElementById('root').innerHTML =
     renderHeader() +
