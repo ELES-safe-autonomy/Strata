@@ -265,6 +265,20 @@ function sortByTime(arr) {
   })
 }
 function todayDayKey() { return DAYS_KEYS[new Date().getDay()] }
+function thisWeekBounds() {
+  const today = new Date(), day = today.getDay()
+  const mon = new Date(today)
+  mon.setDate(today.getDate() - (day === 0 ? 6 : day - 1))
+  const sun = new Date(mon)
+  sun.setDate(mon.getDate() + 6)
+  return {mon: mon.toISOString().slice(0,10), sun: sun.toISOString().slice(0,10)}
+}
+function loadVision(rmId) {
+  try { return localStorage.getItem(`strata_vision_${rmId}`) || '' } catch { return '' }
+}
+function saveVision(rmId, text) {
+  try { localStorage.setItem(`strata_vision_${rmId}`, text) } catch(e) {}
+}
 
 // ── MAIN STATE ────────────────────────────────────────────
 const BLANK = {roadmaps:[], daily:{}, notes:{wins:'',hard:'',adjust:'',ideas:''}}
@@ -444,6 +458,10 @@ async function scheduleReminder(title, time, note) {
   }, ms)
 }
 
+// ── VISION STATE ─────────────────────────────────────────
+const visionOpen = {}
+function toggleVision(rmId) { visionOpen[rmId] = !visionOpen[rmId]; render() }
+
 // ── NAVIGATION ───────────────────────────────────────────
 let stack  = [{view:'roadmaps'}]
 let tabId  = 'roadmaps'
@@ -499,7 +517,11 @@ function renderHeader() {
   } else if (v.view==='roadmap') {
     const rm=findRm(v.id)
     title=rm ? rm.name : 'Roadmap'
-    act=`<button class="hdr-act" onclick="openForm('newMonth',{rmId:'${v.id}',gtype:'goal'})">+ Month</button>`
+    act=`<button class="hdr-act" style="margin-right:6px" onclick="push('overview',{rmId:'${v.id}'})">Overview</button><button class="hdr-act" onclick="openForm('newMonth',{rmId:'${v.id}',gtype:'goal'})">+ Month</button>`
+  } else if (v.view==='overview') {
+    const rm=findRm(v.rmId)
+    title=rm ? rm.name : 'Overview'
+    sub='Overview'
   } else if (v.view==='month') {
     const rm=findRm(v.rmId), mo=rm&&findMo(rm,v.moId)
     title=mo ? mo.title : 'Month'
@@ -511,6 +533,7 @@ function renderHeader() {
     sub=mo ? fmtMonth(mo.month) : ''
     act=`<button class="hdr-act" onclick="openForm('newTask',{rmId:'${v.rmId}',moId:'${v.moId}',wkId:'${v.wkId}',block:'day',gtype:'task'})">+ Task</button>`
   } else if (v.view==='progress') { title='Progress'
+  } else if (v.view==='now')      { title='Now'
   } else if (v.view==='notes')    { title='Notes'
   } else if (v.view==='settings') { title='Settings' }
 
@@ -530,8 +553,8 @@ function renderNav() {
   const tabs = [
     {id:'roadmaps', icon:'🗺',  lbl:'Maps'},
     {id:'today',    icon:'📅',  lbl:'Today'},
+    {id:'now',      icon:'🎯',  lbl:'Now'},
     {id:'progress', icon:'📊',  lbl:'Progress'},
-    {id:'notes',    icon:'📝',  lbl:'Notes'},
     {id:'settings', icon:'⚙️', lbl:'Settings'}
   ]
   return `<nav class="nav">${tabs.map(t =>
@@ -731,22 +754,20 @@ function renderRoadmapDetail(rmId) {
   const grouped = {}
   rm.months.forEach(m => { if (!grouped[m.month]) grouped[m.month]=[]; grouped[m.month].push(m) })
   Object.keys(grouped).sort().forEach(period => {
-    html += `<div class="sec-lbl" style="margin-top:8px">${fmtMonth(period)}</div>`
-    grouped[period].forEach(mo => {
-      const mp  = monthProg(mo)
-      const done = mp.complete
-      html += `<div class="card tappable" style="margin-bottom:8px" onclick="push('month',{rmId:'${rmId}',moId:'${mo.id}'})">
-        <div class="g-row" style="padding:0 0 8px">
-          <div class="g-info">
-            <div class="g-title">${esc(mo.title)}<span class="badge" style="background:${mo.type==='goal'?'var(--a-bg)':'var(--bg2)'};color:${mo.type==='goal'?'var(--accent)':'var(--text3)'}">${mo.type==='goal'?'Goal':'Task'}</span></div>
-            <div class="g-meta">${mo.weeks.length} week${mo.weeks.length!==1?'s':''} · ${mp.done}/${mp.total} complete</div>
+    const months = grouped[period]
+    html += `<div class="card" style="margin-bottom:10px">
+      <div class="sec-lbl" style="margin:0 0 8px">${fmtMonth(period)}</div>
+      ${months.map(mo => {
+        const mp = monthProg(mo)
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:.5px solid var(--border)">
+          <div style="width:18px;height:18px;border-radius:50%;border:1.5px solid ${mp.complete?hex:'var(--borderB)'};background:${mp.complete?hex:'transparent'};flex-shrink:0;display:flex;align-items:center;justify-content:center">
+            ${mp.complete?`<span style="color:#fff;font-size:10px;font-weight:700">✓</span>`:''}
           </div>
-          <div class="g-pct" style="color:${done?'#10b981':hex}">${done?'✓':mp.pct+'%'}</div>
-          <div class="chevron">›</div>
-        </div>
-        <div class="bar"><div class="bar-fill" style="width:${mp.pct}%;background:${hex}"></div></div>
-      </div>`
-    })
+          <div style="flex:1;font-size:13px;font-weight:500;color:var(--text2)">→ ${esc(mo.title)}</div>
+          <button style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;padding:0 0 0 6px;line-height:1" onclick="push('month',{rmId:'${rmId}',moId:'${mo.id}'})">›</button>
+        </div>`
+      }).join('')}
+    </div>`
   })
   return html
 }
@@ -768,6 +789,55 @@ function renderFormNewMonth(rmId) {
       <button class="btn" onclick="closeForm()">Cancel</button>
     </div>
   </div>`
+}
+
+// ── RENDER: OVERVIEW ─────────────────────────────────────
+function renderOverview(rmId) {
+  const rm = findRm(rmId)
+  if (!rm) return '<div class="empty"><div class="empty-h">Not found</div></div>'
+  const prog    = rmProg(rm)
+  const hex     = COLOR_HEX[rm.color] || 'var(--accent)'
+  const vision  = loadVision(rmId)
+  const isOpen  = !!visionOpen[rmId]
+  const preview = vision ? esc(vision.split('\n')[0]) : ''
+
+  let html = `<div class="card" style="margin-bottom:12px;cursor:pointer" onclick="toggleVision('${rmId}')">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:14px;font-weight:600">Vision</div>
+      <span style="color:var(--text3);font-size:13px">${isOpen?'▲':'▼'}</span>
+    </div>
+    ${!isOpen && preview ? `<div style="font-size:13px;color:var(--text3);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${preview}</div>` : ''}
+    ${isOpen ? `<textarea class="ta" rows="5" style="margin-top:10px" placeholder="Write your vision, goals, and motivation for this roadmap…" onclick="event.stopPropagation()" oninput="saveVision('${rmId}',this.value)">${esc(vision)}</textarea>` : ''}
+  </div>`
+
+  html += `<div class="card" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;gap:14px">
+      ${ring(prog.pct, hex)}
+      <div>
+        <div style="font-size:15px;font-weight:600">${esc(rm.name)}</div>
+        <div style="font-size:13px;color:var(--text3);margin-top:3px">${rm.months.length} months · ${rm.months.reduce((s,m)=>s+m.weeks.length,0)} weeks · ${rm.months.reduce((s,m)=>s+m.weeks.reduce((ws,w)=>ws+w.days.length,0),0)} tasks</div>
+      </div>
+    </div>
+  </div>`
+
+  if (!rm.months.length) {
+    html += `<div class="empty"><div class="empty-ico">🗺</div><div class="empty-h">No months yet</div><div class="empty-s">Add monthly goals from the roadmap view.</div></div>`
+    return html
+  }
+
+  const grouped = {}
+  rm.months.forEach(m => { if (!grouped[m.month]) grouped[m.month]=[]; grouped[m.month].push(m) })
+  Object.keys(grouped).sort().forEach(period => {
+    html += `<div class="card" style="margin-bottom:10px">
+      <div class="sec-lbl" style="margin:0 0 8px">${fmtMonth(period)}</div>
+      ${grouped[period].map(mo => `
+        <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:.5px solid var(--border)">
+          <div style="width:16px;height:16px;border-radius:50%;border:1.5px solid ${monthProg(mo).complete?hex:'var(--borderB)'};background:${monthProg(mo).complete?hex:'transparent'};flex-shrink:0"></div>
+          <div style="flex:1;font-size:13px;color:var(--text2)">→ ${esc(mo.title)}</div>
+        </div>`).join('')}
+    </div>`
+  })
+  return html
 }
 
 // ── RENDER: MONTH DETAIL ──────────────────────────────────
@@ -982,10 +1052,107 @@ function renderNotes() {
     </div>`
 }
 
+// ── RENDER: NOW ───────────────────────────────────────────
+function renderNow() {
+  const curMonth = td().slice(0,7)
+  const {mon, sun} = thisWeekBounds()
+  let html = ''
+
+  // 1. This Month
+  html += `<div class="sec-lbl" style="margin-top:0">This Month — ${fmtMonth(curMonth)}</div>`
+  const monthGroups = []
+  S.roadmaps.forEach(rm => {
+    const months = rm.months.filter(mo => mo.month === curMonth)
+    if (months.length) monthGroups.push({rm, months})
+  })
+  if (!monthGroups.length) {
+    html += `<div class="card" style="margin-bottom:14px"><div style="text-align:center;padding:10px 0;font-size:13px;color:var(--text3)">No goals set for this month</div></div>`
+  } else {
+    monthGroups.forEach(({rm, months}) => {
+      const hex = COLOR_HEX[rm.color] || 'var(--accent)'
+      html += `<div class="card" style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:18px">${rm.icon}</span>
+          <span style="font-size:13px;font-weight:600;color:${hex}">${esc(rm.name)}</span>
+        </div>
+        ${months.map(mo => `<div style="font-size:13px;color:var(--text2);padding:5px 0;border-bottom:.5px solid var(--border)">→ ${esc(mo.title)}</div>`).join('')}
+      </div>`
+    })
+  }
+
+  // 2. This Week
+  html += `<div class="sec-lbl">This Week — ${weekRange(mon)}</div>`
+  const weekGroups = []
+  S.roadmaps.forEach(rm => {
+    const tasks = []
+    rm.months.forEach(mo => mo.weeks.forEach(wk => wk.days.forEach(t => {
+      if (t.date >= mon && t.date <= sun) tasks.push(t)
+    })))
+    if (tasks.length) weekGroups.push({rm, tasks: sortByTime(tasks)})
+  })
+  if (!weekGroups.length) {
+    html += `<div class="card" style="margin-bottom:14px"><div style="text-align:center;padding:10px 0;font-size:13px;color:var(--text3)">No tasks scheduled this week</div></div>`
+  } else {
+    weekGroups.forEach(({rm, tasks}) => {
+      const hex = COLOR_HEX[rm.color] || 'var(--accent)'
+      html += `<div class="card" style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span style="font-size:18px">${rm.icon}</span>
+          <span style="font-size:13px;font-weight:600;color:${hex}">${esc(rm.name)}</span>
+        </div>
+        ${tasks.map(t => {
+          const bl = BLOCKS.find(b=>b.key===t.block)
+          return `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:.5px solid var(--border)">
+            <div style="width:14px;height:14px;border-radius:50%;border:1.5px solid ${t.done?hex:'var(--borderB)'};background:${t.done?hex:'transparent'};flex-shrink:0;margin-top:2px"></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;color:${t.done?'var(--text3)':'var(--text2)'};${t.done?'text-decoration:line-through':''}">${esc(t.title)}${t.time?`<span class="item-time">${fmtTime(t.time)}</span>`:''}</div>
+              <div style="font-size:11px;color:var(--text3)">${fmtDate(t.date)}${bl?' · '+bl.emoji+' '+bl.label:''}</div>
+            </div>
+          </div>`
+        }).join('')}
+      </div>`
+    })
+  }
+
+  // 3. Today's Routines
+  const dayKey  = todayDayKey()
+  const dayRtns = (loadRoutines()[dayKey] || [])
+  html += `<div class="sec-lbl">Today's Routines — ${DAYS_LABEL[dayKey]}</div>`
+  if (!dayRtns.length) {
+    html += `<div class="card" style="margin-bottom:14px"><div style="text-align:center;padding:10px 0;font-size:13px;color:var(--text3)">No routines set for ${DAYS_LABEL[dayKey]}</div></div>`
+  } else {
+    html += `<div class="card" style="margin-bottom:14px">
+      ${dayRtns.map(r => `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:.5px solid var(--border)">
+        <span style="font-size:12px;color:var(--text3);min-width:44px;margin-top:2px">${r.time?fmtTime(r.time):'—'}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500">${esc(r.title)}</div>
+          ${r.note?`<div style="font-size:12px;color:var(--text3);margin-top:2px">${esc(r.note)}</div>`:''}
+        </div>
+      </div>`).join('')}
+    </div>`
+  }
+
+  return html
+}
+
 // ── RENDER: SETTINGS ──────────────────────────────────────
 function renderSettings() {
   const routines = loadRoutines()
-  let html = `<div class="sec-lbl" style="margin-top:0;margin-bottom:12px">Daily Routines</div>`
+  const n = S.notes
+  let html = `<div class="sec-lbl" style="margin-top:0;margin-bottom:12px">Reflections</div>
+    <div class="card"><div class="card-title">This week's wins</div>
+      <textarea class="ta" rows="4" placeholder="What went well? Even small things count…" oninput="saveNote('wins',this.value)">${n.wins||''}</textarea>
+    </div>
+    <div class="card"><div class="card-title">What's hard right now</div>
+      <textarea class="ta" rows="4" placeholder="Write it out — naming it helps." oninput="saveNote('hard',this.value)">${n.hard||''}</textarea>
+    </div>
+    <div class="card"><div class="card-title">Next adjustment</div>
+      <textarea class="ta" rows="3" placeholder="One small change for next week?" oninput="saveNote('adjust',this.value)">${n.adjust||''}</textarea>
+    </div>
+    <div class="card" style="margin-bottom:20px"><div class="card-title">Ideas to revisit</div>
+      <textarea class="ta" rows="4" placeholder="Questions, sparks, things to come back to…" oninput="saveNote('ideas',this.value)">${n.ideas||''}</textarea>
+    </div>
+  <div class="sec-lbl" style="margin-bottom:12px">Daily Routines</div>`
 
   DAYS_ORDERED.forEach(day => {
     const list    = routines[day] || []
@@ -1074,8 +1241,9 @@ function render() {
     case 'roadmap':  content = renderRoadmapDetail(v.id); break
     case 'month':    content = renderMonthDetail(v.rmId, v.moId); break
     case 'week':     content = renderWeekDetail(v.rmId, v.moId, v.wkId); break
+    case 'overview': content = renderOverview(v.rmId); break
     case 'progress': content = renderProgress(); break
-    case 'notes':    content = renderNotes(); break
+    case 'now':      content = renderNow(); break
     case 'settings': content = renderSettings(); break
   }
   document.getElementById('root').innerHTML =
